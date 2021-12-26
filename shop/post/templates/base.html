@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html dir='rtl' lang="fa">
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Original Bootstrap 4.0.0-alpha.6 -->
+    <link rel='stylesheet' id='bootstrap-css' href='PATH/bootstrap.min.css?ver=4.0.0-alpha.6' type='text/css' />
+
+    <!-- RTL Bootstrap 4.0.0-alpha.6.1 -->
+    <link rel='stylesheet' id='bootstrap-rtl-css' href='PATH/bootstrap.rtl.min.css?ver=4.0.0-alpha.6.1'
+        type='text/css' />
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <title>{% block title %}def title{%endblock%}</title>
+    {% block linkCss %}
+    {% endblock linkCss %}
+    <style>
+        div {
+            border: 1px solid black;
+            border-radius: 5px;
+            border: solid black 2px;
+            margin: 5px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+
+
+        img {
+            width: 50%;
+            height: auto;
+            margin-left: 10%;
+
+        }
+
+        * {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container p-3 my-3 bg-dark text-white">
+        <h1>وبلاگ</h1>
+    </div>
+
+
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="http://127.0.0.1:8000/blog/post_list/">خانه <span
+                            class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:8000/blog/register_form/">ثبت نام</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:8000">صفحه ورود و خروج</a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:8000/blog/post_form/">ثبت ‍‍جدید</a>
+                </li>
+                {% endif %}
+
+            </ul>
+
+
+
+
+
+
+
+
+
+
+            <form role="search" method="get" id="searchform" action="{% url 'post:search' %}"
+                class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" Type="Search" Name='Q' PlaceHolder="جستجو" Required
+                    aria-label="جستجو">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">برو</button>
+            </form>
+        </div>
+    </nav>
+
+
+
+    <hr>
+    {% block content %}
+    {% endblock content %}
+    <hr>
+
+
+
+
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block linkCss %}
+<link rel="stylesheet" href="{% static 'style.css'%}">
+{% endblock linkCss %}
+
+
+{% block content %}
+
+
+
+
+
+{% for post in posts %}
+<div>
+
+
+    <h3 class="container p-3 my-3">{{post.post_title}}</h3>
+    <hr>
+    <p class="container p-3 my-3">{{post.post_summery}}</p>
+    <hr>
+    {% if post.image %}
+    <img src="{{post.image.url}}">
+
+    {% endif %}
+    <hr>
+    <a href="http://127.0.0.1:8000/blog/post_details/{{post.slug}}" class="container p-3 my-3">جزپیات</a>
+    <hr>
+    <a href="http://127.0.0.1:8000/blog/post_form_edit/{{post.id}}" class="container p-3 my-3">ویرایش </a>
+
+
+
+
+
+</div>
+{% endfor %}
+<hr>
+<div>
+    <h1>دسته بندی ها</h1>
+</div>
+
+{% for cat in categories %}
+<div>
+
+
+    <h3 class="container p-3 my-3">{{cat.category_name}}</h3>
+    <hr>
+    <a href="http://127.0.0.1:8000/blog/category_details_view/{{cat.id}}" class="container p-3 my-3">جزپیات</a>
+
+    <hr>
+
+    <a href="http://127.0.0.1:8000/blog/category_form_edit/{{cat.id}}" class="container p-3 my-3">ویرایش دسته بندی</a>
+
+
+
+
+
+    <form role="search" method="get" id="searchform" action="{% url 'post:category_delete' cat.id %}"
+        class="form-inline my-2 my-lg-0">
+
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">حذف</button>
+    </form>
+
+
+
+
+
+
+
+
+</div>
+{% endfor %}
+
+{% endblock content %}

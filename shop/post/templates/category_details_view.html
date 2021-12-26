@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block linkCss %}
+<link rel="stylesheet" href="{% static 'style.css'%}">
+{% endblock linkCss %}
+
+
+{% block content %}
+
+
+
+
+
+
+<div>
+
+    {% for post in posts %}
+    <h3 class="container p-3 my-3">{{post.post_title}}</h3>
+    <hr>
+    <p class="container p-3 my-3">{{post.post_content}}</p>
+    <hr>
+    {% if post.image %}
+    <img src="{{post.image.url}}">
+
+
+
+
+    {% endif %}
+    {% endfor %}
+    <hr>
+
+    <p class="container p-3 my-3">{{category.category_name}}</p>
+
+
+    </form>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+{% endblock content %}
