@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'post',
     'sell',
-    'user'
+    'auser'
 ]
 
 MIDDLEWARE = [
@@ -141,3 +141,8 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+AUTH_USER_MODEL = 'auser.MUser'
+
+
+# AUTH_USER_MODEL = 'settings.AUTH_USER_MODEL'
