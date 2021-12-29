@@ -2,6 +2,7 @@ from django import forms
 from django.forms import fields
 from django.forms.fields import CharField
 from .models import *
+from auser.models import *
 from django.contrib.auth.models import User
 
 from django.forms import ModelForm
@@ -17,8 +18,8 @@ from django.db import models
 
 class RegisterForm(ModelForm):
     class Meta:
-        model = User
-        fields = ['username', 'email', 'password']
+        model = MUser
+        fields = ['username', 'email', 'password', 'phonenumber', 'user_type']
 
 
 class PostForm(ModelForm):

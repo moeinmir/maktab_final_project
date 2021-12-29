@@ -1,3 +1,4 @@
+from django.contrib.messages.api import error
 from django.db.models.fields import SlugField
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -62,9 +63,16 @@ def register_form(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            User.objects.create_user(
+            user = MUser.objects.create_user(
                 form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password'])
-            # messages.add_message(request, 'A serious error occurred.')
+            user.phonenumber = form.cleaned_data['phonenumber']
+            user.user_type = form.cleaned_data['user_type']
+            print(user)
+            print(user.phonenumber)
+            user.save()
+
+            # messages.add_message(request, level=error,
+            #                      message='A serious error occurred.')
         return render(request, 'register.html', {'form': form})
 
     if request.method == 'GET':
@@ -76,13 +84,16 @@ def post_form(request):
 
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
+            if request.user.user_type == 'Shop':
 
-            n = form.save()
-            print(n.creator)
-            print(request.user)
-            n.creator = request.user
-            n.save()
-            return redirect(reverse('post:post_list'))
+                n = form.save()
+                print(n.creator)
+                print(request.user)
+                n.creator = request.user
+                n.save()
+                return redirect(reverse('post:post_list'))
+            else:
+                return redirect(reverse('post:post_list'))
 
     else:
         form = PostForm()
@@ -144,6 +155,10 @@ def mylogin(request):
         if form.is_valid():
             user = authenticate(
                 request, username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+            print(form.cleaned_data['username'])
+            print(form.cleaned_data['password'])
+
+            print(user)
             if user is not None:
                 login(request, user)
                 return redirect(reverse('post:post_form'))

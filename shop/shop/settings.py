@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'post',
     'sell',
-    'auser'
+    'auser',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -143,6 +144,6 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
 AUTH_USER_MODEL = 'auser.MUser'
-
+# AUTHENTICATION_BACKENDS = 'apps.accounts.auth.CustomAuth'
 
 # AUTH_USER_MODEL = 'settings.AUTH_USER_MODEL'
