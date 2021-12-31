@@ -22,7 +22,10 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('blog/', include('post.urls')),
+    path('sell/', include('sell.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('', include('django.contrib.auth.urls')),
+
+
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

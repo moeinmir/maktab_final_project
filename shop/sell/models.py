@@ -26,9 +26,6 @@ class Shop(models.Model):
     status = models.CharField(
         max_length=10, choices=shop_status_choices, default='processing')
 
-    # comment_content = models.CharField(max_length=255)
-    # related_post = models.ForeignKey(
-    #     Post, on_delete=models.CASCADE, null=True, blank=True)
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
     update_on = models.DateField(auto_now=True, null=True, blank=True)
 
@@ -50,6 +47,8 @@ class ListOfComodity(models.Model):
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
     update_on = models.DateField(auto_now=True, null=True, blank=True)
     description = models.CharField(max_length=255)
+    image = models.ImageField(
+        upload_to='uploads', null=True, blank=True)
 
     @property
     def thumbnail_preview(self):

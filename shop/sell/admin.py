@@ -15,7 +15,7 @@ def confirm(modeladmin, request, queryset):
 
 
 class ShopAdmin(admin.ModelAdmin):
-    list_display = ('name', 'status')
+    list_display = ('id', 'name', 'status')
     list_filter = ('name', 'status')
     search_fields = ('name',)
     fields = (('name', 'owner'), 'category')

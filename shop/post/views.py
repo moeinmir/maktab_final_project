@@ -73,7 +73,7 @@ def register_form(request):
 
             # messages.add_message(request, level=error,
             #                      message='A serious error occurred.')
-        return render(request, 'register.html', {'form': form})
+        return reverse()
 
     if request.method == 'GET':
         return render(request, 'register.html', {'form': form})
