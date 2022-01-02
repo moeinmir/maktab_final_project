@@ -8,41 +8,53 @@
         فروشگاه
     </a>
     <ul aria-labelledby="navbarDropdown">
-        <li><a href="#">لیست محصولات</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن محصول</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">لیست تگ ها</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن تگ</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">لیست دسته بندی ها</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن دسته بندی ها</a></li>
-    </ul>
+        <li><a href="#"></a></li>
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            {{ message }}
 </li>
+{% endfor %}
+</ul>
+{% endif %}
 
+
+
+
+
+{% if shop %}
+<li><a href="#">لیست محصولات</a></li>
 <li>
-    <a href="#" role="button">
-        بلاگ
-    </a>
-    <ul>
-        <li><a href="#">لیست پست ها</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن پست</a></li>
-        <li>
-    </ul>
+    <hr>
 </li>
+<li><a href="add_product/{{user.id}}">افزودن محصول</a></li>
+<li>
+    <hr>
+</li>
+<li><a href="#">لیست تگ ها</a></li>
+<li>
+    <hr>
+</li>
+<li><a href="#">افزودن تگ</a></li>
+<li>
+    <hr>
+</li>
+<li><a href="#">لیست دسته بندی ها</a></li>
+<li>
+    <hr>
+</li>
+<li><a href="#">افزودن دسته بندی ها</a></li>
+</ul>
+</li>
+{% else %}
+
+<li><a href="shop_register/{{user.id}}">ثبت فروشگاه</a></li>
+
+{% endif %}
+
+
+
+
+
+
 {% endblock %}

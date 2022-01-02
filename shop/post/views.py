@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
-
+from django.http import HttpResponseRedirect
 
 # from django.shortcuts import render,redirect,get_object_or_404
 # from django.http import HttpResponse,HttpResponseNotFound
@@ -70,10 +70,12 @@ def register_form(request):
             print(user)
             print(user.phonenumber)
             user.save()
+            print(user.user_type)
+            print(type(user.user_type))
 
             # messages.add_message(request, level=error,
             #                      message='A serious error occurred.')
-        return reverse()
+            return HttpResponseRedirect(reverse('post:mylogin'))
 
     if request.method == 'GET':
         return render(request, 'register.html', {'form': form})
@@ -157,11 +159,13 @@ def mylogin(request):
                 request, username=form.cleaned_data['username'], password=form.cleaned_data['password'])
             print(form.cleaned_data['username'])
             print(form.cleaned_data['password'])
-
-            print(user)
             if user is not None:
                 login(request, user)
-                return redirect(reverse('post:post_form'))
+                if user.user_type == 'Costumer':
+                    return redirect(reverse('post:post_form'))
+                else:
+                    return HttpResponseRedirect(reverse('sell:shop_admin', args=[user.id]))
+
             else:
                 print('not found user')
     return render(request, 'login.html', {'form': form})

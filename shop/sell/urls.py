@@ -7,8 +7,11 @@ app_name = 'sell'
 urlpatterns = [
     path('shop_admin/<int:id>',
          ShopAdmin.as_view(template_name='shop_admin.html'), name='shop_admin'),
-    path('shop_register/<int:id>',
+    path('shop_admin/shop_register/<int:id>',
          ShopRegister.as_view()),
-    path('add_product/<int:id>',
+    path('shop_admin/add_product/<int:id>',
          AddProduct.as_view()),
+    path('shop_admin/list_of_comodity/<int:id>',
+         ShopBasketDetailView.as_view()),
+
 ]

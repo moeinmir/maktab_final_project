@@ -17,7 +17,7 @@ basket_status_choices = (('processing', 'processing'),
 
 
 class Shop(models.Model):
-    owner = models.ForeignKey(
+    owner = models.OneToOneField(
         MUser, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, null=True, blank=True)

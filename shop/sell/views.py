@@ -1,3 +1,5 @@
+import psycopg2
+from django.contrib import messages
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -50,22 +52,61 @@ class AddProduct(View):
     model = Shop
 
     def get(self, request, id, **kwargs):
-        form = NewProduct()
-        return render(request, 'shop_register.html', {'form': form})
-
-    def post(self, request, id):
-        form = NewProduct(request.POST, request.FILES)
-        if form.is_valid():
-            new_product = form.save(commit=False)
-            new_product.shop = self.model.objects.filter(owner=request.user)[0]
-            new_product.save()
+        if self.model.objects.get(owner=request.user).status == 'confirmed':
+            form = NewProduct()
+            return render(request, 'shop_register.html', {'form': form})
+        else:
+            messages.error(request, 'your status is not confirmed')
             return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
+    def post(self, request, id):
+        if self.model.objects.get(owner=request.user).status == 'confirmed':
+            form = NewProduct(request.POST, request.FILES)
+            if form.is_valid():
+                new_product = form.save(commit=False)
+                new_product.shop = self.model.objects.get(owner=request.user)
+                new_product.save()
+                return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
+        # else:
+        #     messages.ERROR('your status in not confirmed')
+        #     return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
-class ShopListView(ListView):
-    model = ShopBasket
-    paginate_by = 10
+
+try:
+    conn = psycopg2.connect(
+        "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
+except:
+    print("I am unable to connect to the database")
+
+cur = conn.cursor()
 
 
-class ShopBasketDetailView(DetailView):
-    model = ShopBasket
+class ShopBasketDetailView(View):
+    model = ListOfComodity
+    model1 = ShopBasket
+    model2 = Order
+    model3 = Shop
+
+    def get(self, request, id, **kwargs):
+
+        cur = conn.cursor()
+        cur.execute("""SELECT
+sell_ListOfComodity.name,
+sell_ListOfComodity.price,
+sell_ListOfComodity.stock,
+sell_ListOfComodity.status,
+sell_ShopBasket.costumer_id,
+sell_ShopBasket.basket_number,
+sell_shopBasket.total_price,
+sell_order.shop_basket_id
+
+FROM
+	sell_ListOfComodity
+
+INNER JOIN sell_order
+    ON sell_Order.comodity_id = sell_ListOfComodity.id
+INNER JOIN  sell_ShopBasket
+    ON sell_ShopBasket.id = sell_Order.shop_basket_id;""")
+        rows = cur.fetchall()
+        print(rows)
+        return render(request, 'list_of_comodity.html', {'rows': rows})
