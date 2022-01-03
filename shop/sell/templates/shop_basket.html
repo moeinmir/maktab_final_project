@@ -1,0 +1,14 @@
+{% extends "shop_base.html" %}
+
+{% block content %}
+<li>
+    {% for s in shop_basket %}
+    {{ s }}
+<li><a href="add_product/{{user.id}}">جزپیات سبد خرید</a></li>
+
+</li>
+
+
+
+{% endfor %}
+{% endblock %}

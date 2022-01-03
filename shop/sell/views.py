@@ -81,32 +81,51 @@ except:
 cur = conn.cursor()
 
 
-class ShopBasketDetailView(View):
+class ShopBasketView(View):
     model = ListOfComodity
     model1 = ShopBasket
     model2 = Order
     model3 = Shop
 
     def get(self, request, id, **kwargs):
+        shop_basket = self.model1.objects.filter(
+            shop=self.model3.objects.get(owner=request.user))
+        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, id: {request.user.id}})
 
-        cur = conn.cursor()
-        cur.execute("""SELECT
-sell_ListOfComodity.name,
-sell_ListOfComodity.price,
-sell_ListOfComodity.stock,
-sell_ListOfComodity.status,
-sell_ShopBasket.costumer_id,
-sell_ShopBasket.basket_number,
-sell_shopBasket.total_price,
-sell_order.shop_basket_id
 
-FROM
-	sell_ListOfComodity
+# class ShopBasketDetail(View):
+#     model = ListOfComodity
+#     model1 = ShopBasket
+#     model2 = Order
+#     model3 = Shop
 
-INNER JOIN sell_order
-    ON sell_Order.comodity_id = sell_ListOfComodity.id
-INNER JOIN  sell_ShopBasket
-    ON sell_ShopBasket.id = sell_Order.shop_basket_id;""")
-        rows = cur.fetchall()
-        print(rows)
-        return render(request, 'list_of_comodity.html', {'rows': rows})
+#     def get(self, request, id, **kwargs):
+#         shop_basket = self.model1.objects.filter(
+#             shop=self.model3.objects.get(owner=request.user))
+
+#         return render(request, 'shop_basket.html', {'shop_basket': shop_basket, id: {request.user.id}})
+
+
+#         cur = conn.cursor()
+
+#         cur.execute("""SELECT
+# sell_ListOfComodity.name,
+# sell_ListOfComodity.price,
+# sell_ListOfComodity.stock,
+# sell_ListOfComodity.status,
+# sell_ShopBasket.costumer_id,
+# sell_shopBasket.total_price,
+# sell_order.shop_basket_id
+
+# FROM
+# 	sell_ListOfComodity
+
+# INNER JOIN sell_order
+#     ON sell_Order.comodity_id = sell_ListOfComodity.id
+# INNER JOIN  sell_ShopBasket
+#     ON sell_ShopBasket.id = sell_Order.shop_basket_id
+#     WHERE sell_ShopBasket.shop_id=y;""")
+
+#         rows = cur.fetchall()
+#         print(rows)
+#         return render(request, 'list_of_comodity.html', {'rows': rows})

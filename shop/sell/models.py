@@ -65,12 +65,13 @@ class ListOfComodity(models.Model):
 class ShopBasket(models.Model):
     costumer = models.ForeignKey(
         MUser, on_delete=models.CASCADE, null=True, blank=True)
-    basket_number = PositiveIntegerField()
     total_price = PositiveIntegerField(null=True, blank=True)
     status = models.CharField(
         max_length=55, choices=basket_status_choices, default='processing')
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
     update_on = models.DateField(auto_now=True, null=True, blank=True)
+    shop = models.ForeignKey(
+        Shop, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class Order(models.Model):

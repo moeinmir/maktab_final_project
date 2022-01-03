@@ -11,7 +11,7 @@ urlpatterns = [
          ShopRegister.as_view()),
     path('shop_admin/add_product/<int:id>',
          AddProduct.as_view()),
-    path('shop_admin/list_of_comodity/<int:id>',
-         ShopBasketDetailView.as_view()),
+    path('shop_admin/shop_basket/<int:id>',
+         ShopBasketView.as_view()),
 
 ]
