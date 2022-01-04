@@ -1,6 +1,21 @@
 {% extends "shop_base.html" %}
 
 {% block content %}
+
+
+<div>
+    <form action="{% url 'sell:shop_basket' request.user.id %}" method="post">
+        {% csrf_token %}
+
+        {{search_form.as_p}}
+        <input type="submit" value="تایید شد">
+
+
+</div>
+
+
+
+
 <ul>
     {% for s in shop_basket %}
     <li>

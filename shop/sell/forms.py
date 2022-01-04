@@ -20,3 +20,10 @@ class ShopBasketForm(forms.ModelForm):
     class Meta:
         model = ShopBasket
         fields = ['status']
+
+
+class ShopBasketSearchForm(forms.ModelForm):
+
+    class Meta:
+        model = BasketSearch
+        fields = '__all__'

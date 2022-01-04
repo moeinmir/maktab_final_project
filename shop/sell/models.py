@@ -15,6 +15,9 @@ comodity_status_choices = (('existing', 'existing'),
 basket_status_choices = (('processing', 'processing'),
                          ('confirmed', 'confirmed'), ('payed', 'payed'))
 
+search_status_choices = (('processing', 'processing'),
+                         ('confirmed', 'confirmed'), ('payed', 'payed'), ('all', 'all'))
+
 
 class Shop(models.Model):
     owner = models.OneToOneField(
@@ -84,3 +87,10 @@ class Order(models.Model):
     update_on = models.DateField(auto_now=True, null=True, blank=True)
     shop_basket = models.ForeignKey(
         ShopBasket, on_delete=models.CASCADE, null=True, blank=True)
+
+
+class BasketSearch(models.Model):
+    status = models.CharField(
+        max_length=55, choices=search_status_choices, default='all')
+    begin_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(blank=True, null=True)

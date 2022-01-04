@@ -1,4 +1,5 @@
 from django import views
+from django.db.models.fields import DateField
 import psycopg2
 from django.contrib import messages
 from django.shortcuts import render
@@ -16,6 +17,7 @@ from .forms import *
 from django.views import View
 from rest_framework import generics, mixins
 from django.views.generic import TemplateView, ListView, DetailView
+from datetime import date
 
 
 class ShopAdmin(View):
@@ -55,7 +57,7 @@ class AddProduct(View):
     def get(self, request, id, **kwargs):
         if self.model.objects.get(owner=request.user).status == 'confirmed':
             form = NewProduct()
-            return render(request, 'shop_register.html', {'form': form})
+            return render(request, 'add_product.html', {'form': form})
         else:
             messages.error(request, 'your status is not confirmed')
             return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
@@ -73,26 +75,51 @@ class AddProduct(View):
         #     return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
 
-try:
-    conn = psycopg2.connect(
-        "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
-except:
-    print("I am unable to connect to the database")
+# try:
+#     conn = psycopg2.connect(
+#         "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
+# except:
+#     print("I am unable to connect to the database")
 
-cur = conn.cursor()
+# cur = conn.cursor()
 
 
 class ShopBasketView(View):
+
     model = ListOfComodity
     model1 = ShopBasket
     model2 = Order
     model3 = Shop
 
     def get(self, request, id, **kwargs):
+        search_form = ShopBasketForm()
         shop_basket = self.model1.objects.filter(
             shop=self.model3.objects.get(owner=request.user))
         form = ShopBasketForm()
-        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, id: {request.user.id}})
+        search_form = ShopBasketSearchForm()
+        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, 'search_form': search_form, id: {request.user.id}})
+
+    def post(self, request, id, **kwargs):
+        search_form = ShopBasketSearchForm(request.POST or None)
+        # form = ShopBasketForm()
+        print(search_form.is_valid())
+        begin_date = search_form.cleaned_data['begin_date']
+        if begin_date == None:
+            begin_date = date(2015, 5, 18)
+        print(begin_date)
+        end_date = search_form.cleaned_data['end_date']
+        if end_date == None:
+            end_date = date(2500, 5, 18)
+
+        if search_form.is_valid():
+            if search_form.cleaned_data['status'] != 'all':
+                shop_basket = self.model1.objects.filter(
+                    status=search_form.cleaned_data['status'], shop=self.model3.objects.get(owner=request.user), created_on__gte=begin_date, created_on__lte=end_date)
+                return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
+            else:
+                shop_basket = self.model1.objects.filter(shop=self.model3.objects.get(
+                    owner=request.user), created_on__gte=begin_date, created_on__lte=end_date)
+                return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
 
 
 class ShopBasketDetailView(View):
@@ -116,34 +143,50 @@ class ShopBasketDetailView(View):
 
 
 class ShopEditView(View):
-    def get(self, request, id):
+    model = ListOfComodity
+    model1 = ShopBasket
+    model2 = Order
+    model3 = Shop
+
+    def get(self, request, id, **kwargs):
+        print('fffffffffffffffffffffffffff')
+        shop = self.model3.objects.get(owner=request.user)
         form = NewShop()
-        return render(request, 'shop_edit.html', {form: 'form'})
+        return render(request, 'shop_edit.html', {'shop': shop, 'form': form, id: {request.user.id}})
+
+    def post(self, request, id, **kwargs):
+        shop = self.model3.objects.get(owner=request.user)
+        form = NewShop(request.POST or None, instance=shop)
+        print('sdddddddddd')
+        if form.is_valid():
+            edited_shop = form.save(commit=False)
+            edited_shop.status = 'processing'
+            edited_shop.save()
+            return redirect(reverse('sell:shop_admin', args=[request.user.id]))
 
     # def post(self, request, id):
     #     form = NewShop()
 
+    #         cur = conn.cursor()
 
-#         cur = conn.cursor()
+    #         cur.execute("""SELECT
+    # sell_ListOfComodity.name,
+    # sell_ListOfComodity.price,
+    # sell_ListOfComodity.stock,
+    # sell_ListOfComodity.status,
+    # sell_ShopBasket.costumer_id,
+    # sell_shopBasket.total_price,
+    # sell_order.shop_basket_id
 
-#         cur.execute("""SELECT
-# sell_ListOfComodity.name,
-# sell_ListOfComodity.price,
-# sell_ListOfComodity.stock,
-# sell_ListOfComodity.status,
-# sell_ShopBasket.costumer_id,
-# sell_shopBasket.total_price,
-# sell_order.shop_basket_id
+    # FROM
+    # 	sell_ListOfComodity
 
-# FROM
-# 	sell_ListOfComodity
+    # INNER JOIN sell_order
+    #     ON sell_Order.comodity_id = sell_ListOfComodity.id
+    # INNER JOIN  sell_ShopBasket
+    #     ON sell_ShopBasket.id = sell_Order.shop_basket_id
+    #     WHERE sell_ShopBasket.shop_id=y;""")
 
-# INNER JOIN sell_order
-#     ON sell_Order.comodity_id = sell_ListOfComodity.id
-# INNER JOIN  sell_ShopBasket
-#     ON sell_ShopBasket.id = sell_Order.shop_basket_id
-#     WHERE sell_ShopBasket.shop_id=y;""")
-
-#         rows = cur.fetchall()
-#         print(rows)
-#         return render(request, 'list_of_comodity.html', {'rows': rows})
+    #         rows = cur.fetchall()
+    #         print(rows)
+    #         return render(request, 'list_of_comodity.html', {'rows': rows})

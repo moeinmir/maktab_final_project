@@ -67,3 +67,6 @@ class ShopBasketAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ShopBasket, ShopBasketAdmin)
+
+
+admin.site.register(BasketSearch)
