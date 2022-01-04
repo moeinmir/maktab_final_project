@@ -1,14 +1,24 @@
 {% extends "shop_base.html" %}
 
 {% block content %}
-<li>
+<ul>
     {% for s in shop_basket %}
-    {{ s }}
-<li><a href="add_product/{{user.id}}">جزپیات سبد خرید</a></li>
+    <li>
+        نام کاربری مشتری: {{s.costumer.username }} - قیمت کل سبد خرید: {{s.total_price}}- وضعیت: {{s.status}}
+        <hr>
+        <form action="shop_basket_details/{{s.id}}" method="post">
+            {% csrf_token %}
 
-</li>
+            {{form.as_p}}
 
+            <input type="submit" value="تایید شد">
 
+        </form>
+    <li><a href="shop_basket_details/{{s.id}}">جزپیات سبد خرید</a></li>
+
+    </li>
+
+</ul>
 
 {% endfor %}
 {% endblock %}

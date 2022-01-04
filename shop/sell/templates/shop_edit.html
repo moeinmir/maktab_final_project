@@ -1,0 +1,16 @@
+{% extends "shop_base.html" %}
+
+{% block content %}
+
+
+<form>
+    {% csrf_token %}
+
+    {{form.as_p}}
+    {{shop}}
+
+    <input type="submit" value="تایید شد">
+
+</form>
+
+{% endblock %}

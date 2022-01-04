@@ -14,3 +14,9 @@ class NewProduct(forms.ModelForm):
         model = ListOfComodity
         fields = ['name', 'tag', 'price', 'stock',
                   'thumbnail', 'description', 'image']
+
+
+class ShopBasketForm(forms.ModelForm):
+    class Meta:
+        model = ShopBasket
+        fields = ['status']

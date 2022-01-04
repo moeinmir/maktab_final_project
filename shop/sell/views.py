@@ -1,3 +1,4 @@
+from django import views
 import psycopg2
 from django.contrib import messages
 from django.shortcuts import render
@@ -90,20 +91,37 @@ class ShopBasketView(View):
     def get(self, request, id, **kwargs):
         shop_basket = self.model1.objects.filter(
             shop=self.model3.objects.get(owner=request.user))
-        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, id: {request.user.id}})
+        form = ShopBasketForm()
+        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, id: {request.user.id}})
 
 
-# class ShopBasketDetail(View):
-#     model = ListOfComodity
-#     model1 = ShopBasket
-#     model2 = Order
-#     model3 = Shop
+class ShopBasketDetailView(View):
+    model = ListOfComodity
+    model1 = ShopBasket
+    model2 = Order
+    model3 = Shop
 
-#     def get(self, request, id, **kwargs):
-#         shop_basket = self.model1.objects.filter(
-#             shop=self.model3.objects.get(owner=request.user))
+    def get(self, request, id, **kwargs):
+        shop_basket = self.model1.objects.get(id=id)
+        order = self.model2.objects.filter(shop_basket=id)
+        return render(request, 'shop_basket_details.html', {'order': order, 'shop_basket': shop_basket})
 
-#         return render(request, 'shop_basket.html', {'shop_basket': shop_basket, id: {request.user.id}})
+    def post(self, request, id, **kwargs):
+        shop_basket = self.model1.objects.get(id=id)
+        print(shop_basket.status)
+        form = ShopBasketForm(request.POST or None, instance=shop_basket)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('sell:shop_basket', args=[request.user.id]))
+
+
+class ShopEditView(View):
+    def get(self, request, id):
+        form = NewShop()
+        return render(request, 'shop_edit.html', {form: 'form'})
+
+    # def post(self, request, id):
+    #     form = NewShop()
 
 
 #         cur = conn.cursor()

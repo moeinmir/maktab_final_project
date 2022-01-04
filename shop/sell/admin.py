@@ -60,7 +60,7 @@ admin.site.register(Order, OrderAdmin)
 
 
 class ShopBasketAdmin(admin.ModelAdmin):
-    list_display = ('costumer', 'status')
+    list_display = ('id', 'costumer', 'status')
     list_filter = ('costumer', 'status')
     search_fields = ('costumer',)
     date_hierarchy = ('created_on')
