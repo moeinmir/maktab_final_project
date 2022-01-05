@@ -18,4 +18,10 @@ urlpatterns = [
     path('shop_admin/shop_edit/<int:id>',
          ShopEditView.as_view(), name='shop_edit'),
 
+    path('shop_admin/comodity_list_view/<int:id>',
+         ComodityListView.as_view(), name='comodity_list_view'),
+
+
+
+
 ]

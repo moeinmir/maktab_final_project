@@ -1,5 +1,7 @@
 from django import views
+from django.contrib.auth.models import User
 from django.db.models.fields import DateField
+from django.db.models.query import QuerySet
 import psycopg2
 from django.contrib import messages
 from django.shortcuts import render
@@ -11,6 +13,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import CreateView
 from django.urls import reverse_lazy, reverse
 from django.views.generic.base import TemplateView
+
+import shop
 from .models import *
 from auser.models import *
 from .forms import *
@@ -164,29 +168,44 @@ class ShopEditView(View):
             edited_shop.save()
             return redirect(reverse('sell:shop_admin', args=[request.user.id]))
 
-    # def post(self, request, id):
-    #     form = NewShop()
 
-    #         cur = conn.cursor()
+class ComodityListView(ListView):
+    print('ffffffffffffffffffffffffffffffffffffffffff')
+    model = ListOfComodity
+    model1 = MUser
+    model2 = Shop
+    context_object_name = 'comodity_list'
+    template_name = 'comodity_list_view.html'
 
-    #         cur.execute("""SELECT
-    # sell_ListOfComodity.name,
-    # sell_ListOfComodity.price,
-    # sell_ListOfComodity.stock,
-    # sell_ListOfComodity.status,
-    # sell_ShopBasket.costumer_id,
-    # sell_shopBasket.total_price,
-    # sell_order.shop_basket_id
+    def get_queryset(self):
+        return ListOfComodity.objects.filter(
+            shop=self.model2.objects.get(owner=self.request.user))
 
-    # FROM
-    # 	sell_ListOfComodity
 
-    # INNER JOIN sell_order
-    #     ON sell_Order.comodity_id = sell_ListOfComodity.id
-    # INNER JOIN  sell_ShopBasket
-    #     ON sell_ShopBasket.id = sell_Order.shop_basket_id
-    #     WHERE sell_ShopBasket.shop_id=y;""")
+# https: // stackoverflow.com/questions/64795387/how-to-filter-queryset-to-current-user-in-django
+# def post(self, request, id):
+#     form = NewShop()
 
-    #         rows = cur.fetchall()
-    #         print(rows)
-    #         return render(request, 'list_of_comodity.html', {'rows': rows})
+#         cur = conn.cursor()
+
+#         cur.execute("""SELECT
+# sell_ListOfComodity.name,
+# sell_ListOfComodity.price,
+# sell_ListOfComodity.stock,
+# sell_ListOfComodity.status,
+# sell_ShopBasket.costumer_id,
+# sell_shopBasket.total_price,
+# sell_order.shop_basket_id
+
+# FROM
+# 	sell_ListOfComodity
+
+# INNER JOIN sell_order
+#     ON sell_Order.comodity_id = sell_ListOfComodity.id
+# INNER JOIN  sell_ShopBasket
+#     ON sell_ShopBasket.id = sell_Order.shop_basket_id
+#     WHERE sell_ShopBasket.shop_id=y;""")
+
+#         rows = cur.fetchall()
+#         print(rows)
+#         return render(request, 'list_of_comodity.html', {'rows': rows})

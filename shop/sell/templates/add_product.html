@@ -7,8 +7,15 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <h5>مشخصات محصولی که قصد ثبت آن را دارید وارد نمایید</h5>
-            {{form.as_p}}
 
+
+
+            {% for field in form %}
+            <div>
+                {{ field.label_tag }}: {{ field }}
+
+            </div>
+            {% endfor %}
             <input type="submit" value="تایید شد">
         </form>
     </div>

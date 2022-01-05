@@ -1,0 +1,16 @@
+{% extends "shop_base.html" %}
+
+{% block content %}
+<h1>لیست محصولات</h1>
+{% if comodity_list %}
+<ul>
+    {% for c in comodity_list %}
+    <li>
+        {{ c.name }}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>محصول ثبت شدهای وجود ندارد</p>
+{% endif %}
+{% endblock %}
