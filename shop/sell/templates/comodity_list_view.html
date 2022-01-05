@@ -1,15 +1,48 @@
 {% extends "shop_base.html" %}
 
 {% block content %}
-<h1>لیست محصولات</h1>
+
+<h1 class="container p-3 my-3">لیست محصولات</h1>
+
 {% if comodity_list %}
-<ul>
-    {% for c in comodity_list %}
-    <li>
-        {{ c.name }}
-    </li>
-    {% endfor %}
-</ul>
+
+{% for c in comodity_list %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <h3>
+                نام محصول: {{ c.name }}
+            </h3>
+
+            <h4>
+                قیمت محصول: {{c.price}}
+            </h4>
+
+            <h4>
+                موجودی اولیه: {{c.primary_stock}}
+            </h4>
+
+            <h4>
+
+                مقدار باقیمانده: {{c.remaining_stock}}
+            </h4>
+        </div>
+        <div class="col-sm-4">
+            <img width=100% src="{{c.thumbnail.url}}">
+        </div>
+
+    </div>
+</div>
+
+
+<hr>
+
+
+
+
+{% endfor %}
+
 {% else %}
 <p>محصول ثبت شدهای وجود ندارد</p>
 {% endif %}

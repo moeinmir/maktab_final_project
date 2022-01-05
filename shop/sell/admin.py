@@ -16,7 +16,7 @@ def confirm(modeladmin, request, queryset):
 
 class ShopAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'status')
-    list_filter = ('name', 'status')
+    list_filter = ('name', 'status', 'delete_status')
     search_fields = ('name',)
     fields = (('name', 'owner'), 'category')
     date_hierarchy = ('created_on')

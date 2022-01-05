@@ -1,64 +1,57 @@
 {% extends "shop_base.html" %}
-
 {% block content %}
-<div>
-    <h3>نام فروشگاه: {{shop.name}}</h3>
-</div>
-<div>
-    <h3>نام کاربر:{{user.username}}</h3>
-</div>
-
+<h1 class="container p-3 my-3">نام فروشگاه: {{shop.name}}</h1>
+<hr>
+<h4 class="container p-3 my-3">نام کاربر:{{user.username}}</h4>
+<hr>
 <li>
-
     <ul>
         {% if messages %}
         <li>
             {% for message in messages %}
             {{ message }}
         </li>
-
         <ul>
             {% endfor %}
         </ul>
         {% endif %}
-
-
-
-
-
         {% if shop %}
-        <li><a href="shop_basket/{{user.id}}">لیست سبدهای خرید</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="add_product/{{user.id}}">افزودن محصول</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="shop_edit/{{user.id}}">ویرایش فروشگاه</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن تگ</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
-        <li>
-            <hr>
-        </li>
-        <li><a href="#">افزودن دسته بندی ها</a></li>
-    </ul>
-</li>
-{% else %}
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-8">
 
-<li><a href="shop_register/{{user.id}}">ثبت فروشگاه</a></li>
+                    <li><a href="shop_basket/{{user.id}}">لیست سبدهای خرید</a></li>
+                    <hr>
+                    <li><a href="add_product/{{user.id}}">افزودن محصول</a></li>
+                    <hr>
+                    <li><a href="shop_edit/{{user.id}}">ویرایش فروشگاه</a></li>
+                    <hr>
+                    <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
+                    <hr>
+                </div>
+                <div class="col-sm-4">
 
-{% endif %}
+                    <form action="{% url 'sell:shop_admin' request.user.id %}" method="post">
+
+                        <h5>می توانید تگ های جدید را در قسمت زیر وارد کنید</h5>
+                        <hr>
+
+                        {% csrf_token %}
+
+                        {% for field in form %}
+
+                        نام تگ: {{ field }}
 
 
-
-
-
-
-{% endblock %}
+                        {% endfor %}
+                        <hr>
+                        <input class="btn btn-secondary" type="submit" value="تایید شد">
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="container">
+            <a href="shop_register/{{user.id}}">ثبت فروشگاه</a>
+        </div>
+        {% endif %}
+        {% endblock %}

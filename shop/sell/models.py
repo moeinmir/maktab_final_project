@@ -9,7 +9,10 @@ from auser.models import MUser
 from post.models import *
 
 shop_status_choices = (('processing', 'processing'),
-                       ('confirmed', 'confirmed'), ('deleted', 'deleted'))
+                       ('confirmed', 'confirmed'))
+delete_status_choice = (('delete', 'delete'), ('undelete', 'undelete'))
+
+
 comodity_status_choices = (('existing', 'existing'),
                            ('notexisting', 'notexisting'))
 basket_status_choices = (('processing', 'processing'),
@@ -28,6 +31,8 @@ class Shop(models.Model):
 
     status = models.CharField(
         max_length=10, choices=shop_status_choices, default='processing')
+    delete_status = models.CharField(
+        max_length=10, choices=delete_status_choice, default='undelete')
 
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
     update_on = models.DateField(auto_now=True, null=True, blank=True)
@@ -42,7 +47,7 @@ class ListOfComodity(models.Model):
         Shop, on_delete=models.CASCADE, null=True, blank=True)
     tag = models.ManyToManyField(Tag, blank=True, null=True)
     price = models.PositiveIntegerField()
-    stock = models.PositiveIntegerField()
+    primary_stock = models.PositiveIntegerField()
     status = models.CharField(
         max_length=55, choices=comodity_status_choices, default='existing')
     thumbnail = models.ImageField(
@@ -52,6 +57,15 @@ class ListOfComodity(models.Model):
     description = models.CharField(max_length=255)
     image = models.ImageField(
         upload_to='uploads', null=True, blank=True)
+    remaining_stock = models.PositiveIntegerField()
+
+    def save(self, *args, **kwargs):
+        if self.remaining_stock > 0:
+            self.status = 'existing'
+            super().save(*args, **kwargs)
+        else:
+            self.status = 'notexisting'
+            super().save(*args, **kwargs)
 
     @property
     def thumbnail_preview(self):
@@ -68,7 +82,7 @@ class ListOfComodity(models.Model):
 class ShopBasket(models.Model):
     costumer = models.ForeignKey(
         MUser, on_delete=models.CASCADE, null=True, blank=True)
-    total_price = PositiveIntegerField(null=True, blank=True)
+    total_price = PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=55, choices=basket_status_choices, default='processing')
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
@@ -87,6 +101,16 @@ class Order(models.Model):
     update_on = models.DateField(auto_now=True, null=True, blank=True)
     shop_basket = models.ForeignKey(
         ShopBasket, on_delete=models.CASCADE, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        price = self.comodity.price
+        if self.comodity.remaining_stock >= self.number:
+            self.shop_basket.total_price += self.number*price
+            self.shop_basket.save()
+            self.comodity.remaining_stock -= self.number
+            self.comodity.save()
+            self.costumer = self.shop_basket.costumer
+            super(Order, self).save(*args, **kwargs)
 
 
 class BasketSearch(models.Model):

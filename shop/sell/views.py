@@ -17,6 +17,7 @@ from django.views.generic.base import TemplateView
 import shop
 from .models import *
 from auser.models import *
+from post.models import *
 from .forms import *
 from django.views import View
 from rest_framework import generics, mixins
@@ -28,14 +29,22 @@ class ShopAdmin(View):
     template_name = 'shop_admin.html'
     model = Shop
     model1 = MUser
+    form = TagCreateForm()
 
     def get(self, request, id, **kwargs):
         user = self.model1.objects.get(id=id)
+        form = TagCreateForm()
         try:
             shop = self.model.objects.get(owner=user)
-            return render(request, 'shop_admin.html', {'user': user, 'shop': shop})
+            return render(request, 'shop_admin.html', {'user': user, 'shop': shop, 'form': form})
         except:
             return render(request, 'shop_admin.html', {'user': user})
+
+    def post(self, request, *args, **kwargs):
+        form = TagCreateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
 
 class ShopRegister(View):
@@ -59,7 +68,7 @@ class AddProduct(View):
     model = Shop
 
     def get(self, request, id, **kwargs):
-        if self.model.objects.get(owner=request.user).status == 'confirmed':
+        if self.model.objects.get(owner=request.user).status == 'confirmed' and self.model.objects.get(owner=request.user).delete_status == 'undelete':
             form = NewProduct()
             return render(request, 'add_product.html', {'form': form})
         else:
@@ -67,25 +76,13 @@ class AddProduct(View):
             return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
     def post(self, request, id):
-        if self.model.objects.get(owner=request.user).status == 'confirmed':
+        if self.model.objects.get(owner=request.user).status == 'confirmed' and self.model.objects.get(owner=request.user).delete_status == 'undelete':
             form = NewProduct(request.POST, request.FILES)
             if form.is_valid():
                 new_product = form.save(commit=False)
                 new_product.shop = self.model.objects.get(owner=request.user)
                 new_product.save()
                 return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
-        # else:
-        #     messages.ERROR('your status in not confirmed')
-        #     return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
-
-
-# try:
-#     conn = psycopg2.connect(
-#         "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
-# except:
-#     print("I am unable to connect to the database")
-
-# cur = conn.cursor()
 
 
 class ShopBasketView(View):
@@ -96,34 +93,38 @@ class ShopBasketView(View):
     model3 = Shop
 
     def get(self, request, id, **kwargs):
-        search_form = ShopBasketForm()
-        shop_basket = self.model1.objects.filter(
-            shop=self.model3.objects.get(owner=request.user))
-        form = ShopBasketForm()
-        search_form = ShopBasketSearchForm()
-        return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, 'search_form': search_form, id: {request.user.id}})
+        if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
+            search_form = ShopBasketForm()
+            shop_basket = self.model1.objects.filter(
+                shop=self.model3.objects.get(owner=request.user)).order_by('created_on')
+            form = ShopBasketForm()
+            search_form = ShopBasketSearchForm()
+            return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, 'search_form': search_form, id: {request.user.id}})
+        else:
+            messages.error(request, 'your status is deleted')
+            return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
     def post(self, request, id, **kwargs):
-        search_form = ShopBasketSearchForm(request.POST or None)
-        # form = ShopBasketForm()
-        print(search_form.is_valid())
-        begin_date = search_form.cleaned_data['begin_date']
-        if begin_date == None:
-            begin_date = date(2015, 5, 18)
-        print(begin_date)
-        end_date = search_form.cleaned_data['end_date']
-        if end_date == None:
-            end_date = date(2500, 5, 18)
-
-        if search_form.is_valid():
-            if search_form.cleaned_data['status'] != 'all':
-                shop_basket = self.model1.objects.filter(
-                    status=search_form.cleaned_data['status'], shop=self.model3.objects.get(owner=request.user), created_on__gte=begin_date, created_on__lte=end_date)
+        if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
+            search_form = ShopBasketSearchForm(request.POST or None)
+            if search_form.is_valid():
+                begin_date = search_form.cleaned_data['begin_date']
+                if begin_date == None:
+                    begin_date = date(2015, 5, 18)
+                end_date = search_form.cleaned_data['end_date']
+                if end_date == None:
+                    end_date = date(2500, 5, 18)
+                if search_form.cleaned_data['status'] != 'all':
+                    shop_basket = self.model1.objects.filter(
+                        status=search_form.cleaned_data['status'], shop=self.model3.objects.get(owner=request.user), created_on__gte=begin_date, created_on__lte=end_date).order_by('created_on')
+                    return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
+                else:
+                    shop_basket = self.model1.objects.filter(shop=self.model3.objects.get(
+                        owner=request.user), created_on__gte=begin_date, created_on__lte=end_date).order_by('created_on')
                 return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
-            else:
-                shop_basket = self.model1.objects.filter(shop=self.model3.objects.get(
-                    owner=request.user), created_on__gte=begin_date, created_on__lte=end_date)
-                return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
+        else:
+            messages.error(request, 'your status is deleted')
+            return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
 
 class ShopBasketDetailView(View):
@@ -153,7 +154,6 @@ class ShopEditView(View):
     model3 = Shop
 
     def get(self, request, id, **kwargs):
-        print('fffffffffffffffffffffffffff')
         shop = self.model3.objects.get(owner=request.user)
         form = NewShop()
         return render(request, 'shop_edit.html', {'shop': shop, 'form': form, id: {request.user.id}})
@@ -170,7 +170,6 @@ class ShopEditView(View):
 
 
 class ComodityListView(ListView):
-    print('ffffffffffffffffffffffffffffffffffffffffff')
     model = ListOfComodity
     model1 = MUser
     model2 = Shop
@@ -180,32 +179,3 @@ class ComodityListView(ListView):
     def get_queryset(self):
         return ListOfComodity.objects.filter(
             shop=self.model2.objects.get(owner=self.request.user))
-
-
-# https: // stackoverflow.com/questions/64795387/how-to-filter-queryset-to-current-user-in-django
-# def post(self, request, id):
-#     form = NewShop()
-
-#         cur = conn.cursor()
-
-#         cur.execute("""SELECT
-# sell_ListOfComodity.name,
-# sell_ListOfComodity.price,
-# sell_ListOfComodity.stock,
-# sell_ListOfComodity.status,
-# sell_ShopBasket.costumer_id,
-# sell_shopBasket.total_price,
-# sell_order.shop_basket_id
-
-# FROM
-# 	sell_ListOfComodity
-
-# INNER JOIN sell_order
-#     ON sell_Order.comodity_id = sell_ListOfComodity.id
-# INNER JOIN  sell_ShopBasket
-#     ON sell_ShopBasket.id = sell_Order.shop_basket_id
-#     WHERE sell_ShopBasket.shop_id=y;""")
-
-#         rows = cur.fetchall()
-#         print(rows)
-#         return render(request, 'list_of_comodity.html', {'rows': rows})
