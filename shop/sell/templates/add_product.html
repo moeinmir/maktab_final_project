@@ -3,22 +3,52 @@
 {% block content %}
 
 <body>
-    <div>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="container">
+
             <h5>مشخصات محصولی که قصد ثبت آن را دارید وارد نمایید</h5>
+            <div class="row">
+
+                <div class="col-sm-8">
+                    <hr>
+                    نام محصول: {{ form.name }}
+                    <hr>
+                    قیمت محصول: {{form.price}}
+                    <hr>
+                    موجودی اولیه: {{form.primary_stock}}
+                    <hr>
+                    باقیمانده: {{form.remaining_stock}}
+                    <hr>
+
+                    توضیحات: {{form.description}}
+                    <hr>
+                </div>
 
 
+                <div class="col-sm-4">
+                    <hr>
+                    تگ ها: {{form.tag}}
+                    <hr>
 
-            {% for field in form %}
-            <div>
-                {{ field.label_tag }}: {{ field }}
+                    عکس کوچک:
+                    <hr>
+                    {{form.thumbnail}}
+                    <hr>
+                    عکس اصلی:
+                    <hr>
+                    {{form.image}}
+                    <hr>
 
+
+                </div>
             </div>
-            {% endfor %}
-            <input type="submit" value="تایید شد">
-        </form>
-    </div>
+
+            <input class="btn btn-secondary btn-block" type="submit" value="تایید">
+
+
+        </div>
+    </form>
 </body>
 
 

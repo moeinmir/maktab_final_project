@@ -3,17 +3,35 @@
 {% block content %}
 
 
-<form method="post">
-    {% csrf_token %}
 
-    <form action="" method="post">
+{% csrf_token %}
+
+<form action="" method="post">
+    <div class="container">
+
         {% csrf_token %}
+        نام جدیدی که برای فروشگاه خود در نظر دارید در قسمت زیر وارد نمایید
+        <hr>
+        {{form.name}}
 
-        {{form.as_p}}
+        <hr>
+        اگر می خواهید فیلد فروشگاه خود را تغییر دهید آن را در قسمت زیر انتخاب کنید
+        <hr>
+        {{form.category}}
+        <hr>
+        اگر می خواهید فروشگاه خود را حذف کنید گزینه حذف را انتخاب نمایید
+        <hr>
+        {{form.delete_status}}
+        <hr>
+    </div>
 
-        <input type="submit" value="تایید شد">
-    </form>
+    <div class="container">
+        <input class="btn btn-secondary btn-block" type="submit" value="تایید">
+    </div>
+
 
 </form>
+
+
 
 {% endblock %}

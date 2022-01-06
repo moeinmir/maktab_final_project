@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'sell',
     'auser',
     'sorl.thumbnail',
+    'mathfilters'
 ]
 
 MIDDLEWARE = [

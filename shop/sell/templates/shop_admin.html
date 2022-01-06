@@ -19,6 +19,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-8">
+                    <hr>
 
                     <li><a href="shop_basket/{{user.id}}">لیست سبدهای خرید</a></li>
                     <hr>
@@ -28,11 +29,18 @@
                     <hr>
                     <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
                     <hr>
+                    <li><a href="{% url 'post:post_list' %}">وبلاگ</a></li>
+                    <hr>
                 </div>
                 <div class="col-sm-4">
 
                     <form action="{% url 'sell:shop_admin' request.user.id %}" method="post">
+                        <hr>
+                        <h4>
+                            افزودن تگ جدید
+                        </h4>
 
+                        <hr>
                         <h5>می توانید تگ های جدید را در قسمت زیر وارد کنید</h5>
                         <hr>
 
@@ -45,7 +53,7 @@
 
                         {% endfor %}
                         <hr>
-                        <input class="btn btn-secondary" type="submit" value="تایید شد">
+                        <input class="btn btn-secondary btn-block" type="submit" value="تایید">
                 </div>
             </div>
         </div>

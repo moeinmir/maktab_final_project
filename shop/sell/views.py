@@ -2,7 +2,6 @@ from django import views
 from django.contrib.auth.models import User
 from django.db.models.fields import DateField
 from django.db.models.query import QuerySet
-import psycopg2
 from django.contrib import messages
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
@@ -91,10 +90,11 @@ class ShopBasketView(View):
     model1 = ShopBasket
     model2 = Order
     model3 = Shop
+    form = ShopBasketForm()
+    search_form = ShopBasketSearchForm()
 
     def get(self, request, id, **kwargs):
         if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
-            search_form = ShopBasketForm()
             shop_basket = self.model1.objects.filter(
                 shop=self.model3.objects.get(owner=request.user)).order_by('created_on')
             form = ShopBasketForm()
@@ -107,6 +107,7 @@ class ShopBasketView(View):
     def post(self, request, id, **kwargs):
         if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
             search_form = ShopBasketSearchForm(request.POST or None)
+            form = ShopBasketForm(request.POST or None)
             if search_form.is_valid():
                 begin_date = search_form.cleaned_data['begin_date']
                 if begin_date == None:
@@ -117,13 +118,17 @@ class ShopBasketView(View):
                 if search_form.cleaned_data['status'] != 'all':
                     shop_basket = self.model1.objects.filter(
                         status=search_form.cleaned_data['status'], shop=self.model3.objects.get(owner=request.user), created_on__gte=begin_date, created_on__lte=end_date).order_by('created_on')
-                    return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
-                else:
+                    form = ShopBasketForm()
+                    search_form = ShopBasketSearchForm()
+                    return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'form': form, 'search_form': search_form, 'id': {request.user.id}})
+                if search_form.cleaned_data['status'] == 'all':
                     shop_basket = self.model1.objects.filter(shop=self.model3.objects.get(
                         owner=request.user), created_on__gte=begin_date, created_on__lte=end_date).order_by('created_on')
-                return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, id: {request.user.id}})
+                    form = ShopBasketForm()
+                    search_form = ShopBasketSearchForm()
+                    return render(request, 'shop_basket.html', {'shop_basket': shop_basket, 'search_form': search_form, 'form': form, id: {request.user.id}})
         else:
-            messages.error(request, 'your status is deleted')
+            messages.error(request, 'شما فروشگاه خود را حذف کردید')
             return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
 
@@ -140,7 +145,6 @@ class ShopBasketDetailView(View):
 
     def post(self, request, id, **kwargs):
         shop_basket = self.model1.objects.get(id=id)
-        print(shop_basket.status)
         form = ShopBasketForm(request.POST or None, instance=shop_basket)
         if form.is_valid():
             form.save()

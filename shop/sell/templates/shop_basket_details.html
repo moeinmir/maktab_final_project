@@ -2,27 +2,63 @@
 
 {% block content %}
 
-<div>
+{% load mathfilters %}
 
-
-    <h3>نام کاربری مشتری:{{shop_basket.costumer.username}}</h3>
+<div class="container">
+    <h3>جزپیات سبد خرید مشتری با نام کاربری: {{shop_basket.costumer.username}}</h3>
 </div>
-<div>
+<hr>
 
-
-    <h2>قیمت کل: {{shop_basket.total_price}}</h2>
+<div class="container">
+    <h3>قیمت کل: {{shop_basket.total_price}}</h3>
 </div>
-<ul>
+<hr>
+</div>
+<hr>
 
-    {% for o in order %}
-    <li></li>
-    نام محصول: {{ o.comodity.name }} - تاریخ ایجاد سفارش:{{o.created_on}} - تاریخ ویرایش سفارش:{{o.opdated_on}}
-    -تعداد سفارش:{{o.number}}
-    </li>
-    <ul>
-
+{% for o in order %}
+<div class="container">
+    <div class="row">
 
 
 
-        {% endfor %}
-        {% endblock %}
+
+        <div class="col-sm-8">
+
+            نام محصول: {{ o.comodity.name }}
+            <hr>
+            تاریخ ایجاد سفارش:{{o.created_on}}
+            <hr>
+            تاریخ ویرایش سفارش:{{o.opdated_on}}
+            <hr>
+            تعداد سفارش:{{o.number}}
+            <hr>
+            قیمت محصول: {{o.comodity.price}}
+            <hr>
+            مبلغ سفارش: {{ o.comodity.price|mul:o.number }}
+
+
+        </div>
+
+
+        <div class='col-sm-4'>
+
+            <img width=100% src="{{o.comodity.thumbnail.url}}">
+
+
+        </div>
+
+    </div>
+
+
+
+</div>
+
+<hr>
+
+
+
+
+
+{% endfor %}
+{% endblock %}

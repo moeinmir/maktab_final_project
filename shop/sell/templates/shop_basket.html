@@ -1,39 +1,56 @@
 {% extends "shop_base.html" %}
-
 {% block content %}
-
-
-<div>
+<div class="container">
+    <h3>لیست سبدهای خرید</h3>
+</div>
+<hr>
+<div class='container'>
+    تاریخ به فرمت 10-10-2000 وارد شود
     <form action="{% url 'sell:shop_basket' request.user.id %}" method="post">
         {% csrf_token %}
+        از تاریخ: {{search_form.begin_date}}
 
-        {{search_form.as_p}}
-        <input type="submit" value="تایید شد">
+        تا تاریخ: {{search_form.end_date}}
 
+        وضعیت: {{search_form.status}}
 
+        <input class="btn btn-secondary" type="submit" value="جستجو">
+    </form>
 </div>
+<hr>
+{% for s in shop_basket %}
+<form action="shop_basket_details/{{s.id}}" method="post">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8">
+                <h4>
+                    نام کاربری مشتری: {{s.costumer.username }}
+                </h4>
+                <hr>
+                <h4>
+                    قیمت کل سبد خرید: {{s.total_price}}
+                </h4>
+                <hr>
+                <h4>
+                    وضعیت: {{s.status}}
+                </h4>
+            </div>
+            <div class="col-sm-4">
 
+                {% csrf_token %}
 
+                تغییر وضعیت سبد خرید:
+                <hr>
+                {{form.status}}
+                <hr>
+                <input class="btn btn-secondary" type="submit" value="تایید">
+                <hr>
+                <a href="shop_basket_details/{{s.id}}">جزپیات سبد خرید</a>
 
-
-<ul>
-    {% for s in shop_basket %}
-    <li>
-        نام کاربری مشتری: {{s.costumer.username }} - قیمت کل سبد خرید: {{s.total_price}}- وضعیت: {{s.status}}
-        <hr>
-        <form action="shop_basket_details/{{s.id}}" method="post">
-            {% csrf_token %}
-
-            {{form.as_p}}
-
-            <input type="submit" value="تایید شد">
-
-        </form>
-    <li><a href="shop_basket_details/{{s.id}}">جزپیات سبد خرید</a></li>
-
-    </li>
-
-</ul>
-
+            </div>
+        </div>
+    </div>
+</form>
+<hr>
 {% endfor %}
 {% endblock %}

@@ -1,12 +1,10 @@
 from django.db import models
 from django.db.models.fields import PositiveIntegerField
-from sorl import thumbnail
 from sorl.thumbnail import get_thumbnail
 from django.utils.html import format_html
-
-
 from auser.models import MUser
 from post.models import *
+
 
 shop_status_choices = (('processing', 'processing'),
                        ('confirmed', 'confirmed'))

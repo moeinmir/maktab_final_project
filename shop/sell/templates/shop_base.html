@@ -24,7 +24,8 @@
     <style>
         div {
             border-radius: 5px;
-            border: solid rgb(151, 202, 183) 0.05px;
+            border: solid rgb(179, 201, 193) 0.05px;
+            background-color: rgb(171, 199, 190);
         }
 
         h1 {
@@ -34,8 +35,10 @@
 
 
         img {
+            margin-top: 5%;
             width: 100%;
             height: auto;
+
 
 
         }
@@ -46,9 +49,9 @@
     </style>
 </head>
 
-<body>
+<body style="background-color:rgb(193, 204, 199);">
     <div class="container p-3 my-3 bg-dark text-white">
-        <h1>صفحه کاربری فروشگاه</h1>
+        <h1><a href="{% url 'sell:shop_admin' request.user.id %}">صفحه کاربری فروشگاه</a></h1>
     </div>
 
 

@@ -2,6 +2,8 @@ from django import forms
 from django.db.models import fields
 from .models import *
 from post.models import *
+search_status_choices = (('processing', 'processing'),
+                         ('confirmed', 'confirmed'), ('payed', 'payed'), ('all', 'all'))
 
 
 class NewShop(forms.ModelForm):
@@ -35,3 +37,10 @@ class TagCreateForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+# class ShopBasketSearchForm(forms.Form):
+#     status = models.CharField(
+#         max_length=55, choices=search_status_choices, default='all')
+#     begin_date = models.DateField(null=True, blank=True)
+#     end_date = models.DateField(blank=True, null=True)
