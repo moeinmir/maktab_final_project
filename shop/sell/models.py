@@ -1,3 +1,4 @@
+from os import name, truncate
 from django.db import models
 from django.db.models.fields import PositiveIntegerField
 from sorl.thumbnail import get_thumbnail
@@ -116,3 +117,15 @@ class BasketSearch(models.Model):
         max_length=55, choices=search_status_choices, default='all')
     begin_date = models.DateField(default=date(1500, 10, 10), blank=True)
     end_date = models.DateField(default=date(2500, 10, 10), blank=True)
+
+
+class Profile(models.Model):
+    image = models.ImageField(
+        upload_to='uploads', null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    profession = models.CharField(max_length=255, null=True, blank=True)
+    interest = models.CharField(max_length=255, null=True, blank=True)
+    costumer = models.OneToOneField(
+        MUser, on_delete=models.CASCADE, null=True, blank=True)

@@ -64,3 +64,4 @@ admin.site.register(ShopBasket, ShopBasketAdmin)
 
 
 admin.site.register(BasketSearch)
+admin.site.register(Profile)

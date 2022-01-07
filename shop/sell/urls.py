@@ -1,6 +1,11 @@
 from django.urls import path
+from django.urls import include, path
 from django.views.generic import TemplateView
 from .views import *
+# rest
+
+from . import views
+
 
 app_name = 'sell'
 
@@ -13,9 +18,6 @@ urlpatterns = [
          AddProduct.as_view()),
     path('shop_admin/shop_basket/<int:id>',
          ShopBasketView.as_view(), name='shop_basket'),
-
-
-
     path('shop_admin/shop_basket/shop_basket_details/<int:id>',
          ShopBasketDetailView.as_view(), name='shop_basket_details'),
     path('shop_admin/shop_edit/<int:id>',
@@ -23,8 +25,11 @@ urlpatterns = [
 
     path('shop_admin/comodity_list_view/<int:id>',
          ComodityListView.as_view(), name='comodity_list_view'),
+    # rest
 
+    path('api/user/', UserRegister.as_view(), name='user_register'),
 
+    path('api/profile/', ProfileRegister.as_view(), name='profile_register'),
 
 
 ]
