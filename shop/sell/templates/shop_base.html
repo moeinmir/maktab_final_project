@@ -1,20 +1,11 @@
 <!DOCTYPE html>
 <html dir='rtl' lang="fa">
 
-
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
-    <!-- Original Bootstrap 4.0.0-alpha.6 -->
-    <link rel='stylesheet' id='bootstrap-css' href='PATH/bootstrap.min.css?ver=4.0.0-alpha.6' type='text/css' />
-
-    <!-- RTL Bootstrap 4.0.0-alpha.6.1 -->
-    <link rel='stylesheet' id='bootstrap-rtl-css' href='PATH/bootstrap.rtl.min.css?ver=4.0.0-alpha.6.1'
-        type='text/css' />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -32,15 +23,10 @@
             text-align: center;
         }
 
-
-
         img {
             margin-top: 5%;
             width: 100%;
             height: auto;
-
-
-
         }
 
         * {
@@ -55,7 +41,17 @@
     </div>
 
 
+    <div class="container">
 
+
+        {% if messages %}
+        <li>
+            {% for message in messages %}
+            {{ message }}
+        </li>
+        {% endfor %}
+        {% endif %}
+    </div>
 
     <hr>
     {% block content %}

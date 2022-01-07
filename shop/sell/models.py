@@ -4,7 +4,7 @@ from sorl.thumbnail import get_thumbnail
 from django.utils.html import format_html
 from auser.models import MUser
 from post.models import *
-
+from datetime import date
 
 shop_status_choices = (('processing', 'processing'),
                        ('confirmed', 'confirmed'))
@@ -114,5 +114,5 @@ class Order(models.Model):
 class BasketSearch(models.Model):
     status = models.CharField(
         max_length=55, choices=search_status_choices, default='all')
-    begin_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(blank=True, null=True)
+    begin_date = models.DateField(default=date(1500, 10, 10), blank=True)
+    end_date = models.DateField(default=date(2500, 10, 10), blank=True)

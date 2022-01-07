@@ -12,10 +12,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponseRedirect
-
-# from django.shortcuts import render,redirect,get_object_or_404
-# from django.http import HttpResponse,HttpResponseNotFound
-# from django.urls import reverse
 from datetime import datetime
 
 
@@ -58,7 +54,6 @@ class CategoryListView(ListView):
 
 
 def register_form(request):
-    # form = RegisterForm(None or request.POST)
     form = RegisterForm()
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -72,9 +67,6 @@ def register_form(request):
             user.save()
             print(user.user_type)
             print(type(user.user_type))
-
-            # messages.add_message(request, level=error,
-            #                      message='A serious error occurred.')
             return HttpResponseRedirect(reverse('post:mylogin'))
 
     if request.method == 'GET':
@@ -102,17 +94,6 @@ def post_form(request):
         return render(request, 'post_form.html', {'form': form})
 
 
-# def comment_form(request):
-#     form = CommentForm(request.POST or None)
-#     if form.is_valid():
-#         form.save()
-
-#         return redirect(reverse('post:post_list'))
-
-#     if request.method == 'GET':
-#         return render(request, 'comment_form.html', {'form': form})
-
-
 def category_form_edit(request, id):
     category = Category.objects.get(id=id)
     print(category)
@@ -134,7 +115,6 @@ def category_delete(request, id):
 
 
 @ login_required(login_url='/login')
-# @permission_required()
 def post_form_edit(request, id):
     post = Post.objects.get(id=id)
     if request.user == post.creator:

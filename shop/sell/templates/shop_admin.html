@@ -4,62 +4,52 @@
 <hr>
 <h4 class="container p-3 my-3">نام کاربر:{{user.username}}</h4>
 <hr>
-<li>
-    <ul>
-        {% if messages %}
-        <li>
-            {% for message in messages %}
-            {{ message }}
-        </li>
-        <ul>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% if shop %}
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-8">
-                    <hr>
 
-                    <li><a href="shop_basket/{{user.id}}">لیست سبدهای خرید</a></li>
-                    <hr>
-                    <li><a href="add_product/{{user.id}}">افزودن محصول</a></li>
-                    <hr>
-                    <li><a href="shop_edit/{{user.id}}">ویرایش فروشگاه</a></li>
-                    <hr>
-                    <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
-                    <hr>
-                    <li><a href="{% url 'post:post_list' %}">وبلاگ</a></li>
-                    <hr>
-                </div>
-                <div class="col-sm-4">
+{% if shop %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <hr>
 
-                    <form action="{% url 'sell:shop_admin' request.user.id %}" method="post">
-                        <hr>
-                        <h4>
-                            افزودن تگ جدید
-                        </h4>
-
-                        <hr>
-                        <h5>می توانید تگ های جدید را در قسمت زیر وارد کنید</h5>
-                        <hr>
-
-                        {% csrf_token %}
-
-                        {% for field in form %}
-
-                        نام تگ: {{ field }}
-
-
-                        {% endfor %}
-                        <hr>
-                        <input class="btn btn-secondary btn-block" type="submit" value="تایید">
-                </div>
-            </div>
+            <li><a href="shop_basket/{{user.id}}">لیست سبدهای خرید</a></li>
+            <hr>
+            <li><a href="add_product/{{user.id}}">افزودن محصول</a></li>
+            <hr>
+            <li><a href="shop_edit/{{user.id}}">ویرایش فروشگاه</a></li>
+            <hr>
+            <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
+            <hr>
+            <li><a href="{% url 'post:post_list' %}">وبلاگ</a></li>
+            <hr>
         </div>
-        {% else %}
-        <div class="container">
-            <a href="shop_register/{{user.id}}">ثبت فروشگاه</a>
+        <div class="col-sm-4">
+
+            <form action="{% url 'sell:shop_admin' request.user.id %}" method="post">
+                <hr>
+                <h4>
+                    افزودن تگ جدید
+                </h4>
+
+                <hr>
+                <h5>می توانید تگ های جدید را در قسمت زیر وارد کنید</h5>
+                <hr>
+
+                {% csrf_token %}
+
+                {% for field in form %}
+
+                نام تگ: {{ field }}
+
+
+                {% endfor %}
+                <hr>
+                <input class="btn btn-secondary btn-block" type="submit" value="تایید">
         </div>
-        {% endif %}
-        {% endblock %}
+    </div>
+</div>
+{% else %}
+<div class="container">
+    <a href="shop_register/{{user.id}}">ثبت فروشگاه</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -37,10 +37,3 @@ class TagCreateForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = '__all__'
-
-
-# class ShopBasketSearchForm(forms.Form):
-#     status = models.CharField(
-#         max_length=55, choices=search_status_choices, default='all')
-#     begin_date = models.DateField(null=True, blank=True)
-#     end_date = models.DateField(blank=True, null=True)
