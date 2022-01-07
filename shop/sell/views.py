@@ -1,29 +1,18 @@
-from django import views
-from django.contrib.auth.models import User
-from django.db.models.fields import DateField
-from django.db.models.query import QuerySet
 from django.contrib import messages
 from django.http.response import Http404
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-# Create your views here.
-from django.http import request
 from django.shortcuts import render, redirect
-from django.views.generic import CreateView
 from django.urls import reverse_lazy, reverse
-from django.views.generic.base import TemplateView
-from django.contrib.auth.decorators import login_required
-import shop
+from django.views import View
+from django.views.generic import ListView
+from datetime import date
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import *
 from auser.models import *
 from post.models import *
 from .forms import *
-from django.views import View
-from rest_framework import generics, mixins
-from django.views.generic import TemplateView, ListView, DetailView
-from datetime import date
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class ShopAdmin(LoginRequiredMixin, View):
@@ -123,8 +112,6 @@ class ShopBasketView(LoginRequiredMixin, View):
     def post(self, request, id, **kwargs):
         if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
             search_form = ShopBasketSearchForm(request.POST or None)
-            print(search_form.is_valid())
-            print(date(1500, 10, 10))
             form = ShopBasketForm(request.POST or None)
             if search_form.is_valid():
                 begin_date = search_form.cleaned_data['begin_date']
@@ -182,7 +169,6 @@ class ShopEditView(LoginRequiredMixin, View):
     def post(self, request, id, **kwargs):
         shop = self.model3.objects.get(owner=request.user)
         form = NewShop(request.POST or None, instance=shop)
-        print('sdddddddddd')
         if form.is_valid():
             edited_shop = form.save(commit=False)
             edited_shop.status = 'processing'

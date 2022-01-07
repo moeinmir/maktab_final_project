@@ -11,25 +11,17 @@
 <div class="container p-3 my-3">
     سلام {{ user.username }}!
     <p><a href="{% url 'logout' %}">خروج</a></p>
-
 </div>
-
 {% else %}
-
 <div>
     <p class="container p-3 my-3">شما وارد نشده </p>
     <hr>
     <a class="container p-3 my-3" href="{% url 'post:mylogin' %}">ورود</a>
 </div>
-
-
-
 {% endif %}
 <div>
     <a class="container p-3 my-3" href="http://127.0.0.1:8000/blog/post_list/">صفحه اصلی</a>
 </div>
-
-
 
 
 

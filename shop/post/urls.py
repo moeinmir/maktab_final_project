@@ -22,5 +22,4 @@ urlpatterns = [
     path('search/', search, name='search'),
     #     path('logout/', logout, name='logout')
     path('category_delete/<int:id>', category_delete, name='category_delete')
-
 ]

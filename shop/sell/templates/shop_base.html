@@ -39,11 +39,7 @@
     <div class="container p-3 my-3 bg-dark text-white">
         <h1><a href="{% url 'sell:shop_admin' request.user.id %}">صفحه کاربری فروشگاه</a></h1>
     </div>
-
-
     <div class="container">
-
-
         {% if messages %}
         <li>
             {% for message in messages %}
@@ -52,18 +48,13 @@
         {% endfor %}
         {% endif %}
     </div>
-
     <hr>
     {% block content %}
     {% endblock content %}
     <hr>
-
-
-
-
-
-
-
+    <div class="container">
+        <p><a href="{% url 'logout' %}">خروج</a></p>
+    </div>
 
 </body>
 

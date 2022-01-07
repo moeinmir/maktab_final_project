@@ -1,19 +1,12 @@
-from django.contrib.messages.api import error
-from django.db.models.fields import SlugField
-from django.db.models import Q
-from django.db.models.query import QuerySet
-from django.views.generic import TemplateView, ListView, DetailView
-from django.shortcuts import redirect, render, get_object_or_404
-from .models import *
-from .forms import *
+from django.views.generic import ListView
+from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponseRedirect
-from datetime import datetime
-
+from .models import *
+from .forms import *
 
 # Create your views here.
 
@@ -45,7 +38,6 @@ def category_details_view(request, category_id):
     category = Category.objects.get(id=category_id)
 
     posts = Post.objects.filter(post_category=category.id)
-    print(posts)
     return render(request, 'category_details_view.html', {'posts': posts, 'category': category})
 
 
@@ -62,11 +54,7 @@ def register_form(request):
                 form.cleaned_data['username'], form.cleaned_data['email'], form.cleaned_data['password'])
             user.phonenumber = form.cleaned_data['phonenumber']
             user.user_type = form.cleaned_data['user_type']
-            print(user)
-            print(user.phonenumber)
             user.save()
-            print(user.user_type)
-            print(type(user.user_type))
             return HttpResponseRedirect(reverse('post:mylogin'))
 
     if request.method == 'GET':
@@ -81,8 +69,6 @@ def post_form(request):
             if request.user.user_type == 'Shop':
 
                 n = form.save()
-                print(n.creator)
-                print(request.user)
                 n.creator = request.user
                 n.save()
                 return redirect(reverse('post:post_list'))
@@ -96,7 +82,6 @@ def post_form(request):
 
 def category_form_edit(request, id):
     category = Category.objects.get(id=id)
-    print(category)
     form = CategoryForm(request.POST or None, instance=category)
     if form.is_valid():
         form.save()
@@ -108,7 +93,6 @@ def category_form_edit(request, id):
 
 
 def category_delete(request, id):
-    print('fffffffffffffff')
     category = Category.objects.get(id=id)
     category.delete()
     return redirect(reverse('post:post_list'))
@@ -137,8 +121,6 @@ def mylogin(request):
         if form.is_valid():
             user = authenticate(
                 request, username=form.cleaned_data['username'], password=form.cleaned_data['password'])
-            print(form.cleaned_data['username'])
-            print(form.cleaned_data['password'])
             if user is not None:
                 login(request, user)
                 if user.user_type == 'Costumer':
@@ -147,7 +129,8 @@ def mylogin(request):
                     return HttpResponseRedirect(reverse('sell:shop_admin', args=[user.id]))
 
             else:
-                print('not found user')
+                messages.info(request, 'کاربر مورد نظر یافت نشد')
+                return redirect(reverse('post:register_form'))
     return render(request, 'login.html', {'form': form})
 
 
