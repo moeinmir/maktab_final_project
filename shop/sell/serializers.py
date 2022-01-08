@@ -20,50 +20,32 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['image', 'address', 'first_name',
                   'last_name', 'profession', 'interest']
 
-    # image = models.ImageField(
-    #     upload_to='uploads', null=True, blank=True)
-    # address = models.CharField(max_length=255)
-    # firs_name = models.CharField(max_length=255)
-    # firs_name = models.CharField(max_length=255)
-    # profession = models.CharField(max_length=255)
-    # interest = models.CharField(max_length=255)
-    # costumer = models.OneToOneField(
-    #     MUser, on_delete=models.CASCADE, null=True, blank=True)
+
+class ShopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shop
+        fields = ['name', 'category']
 
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username']
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'category_name']
 
 
-# class PostSerializer(serializers.ModelSerializer):
-#     tag = TagSerializer()
-#     creator = UserSerializer()
-
-#     class Meta:
-#         model = Post
-#         fields = ['id', 'title', 'created', 'tag', 'creator']
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ListOfComodity
+        fields = '__all__'
 
 
-# class PostCreateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Post
-#         fields = ['title', 'tag']
+class ShopBasketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopBasket
+        fields = '__all__'
 
 
-# class PostDetailSerializer(serializers.ModelSerializer):
-#     # creator = UserSerializer()
-#     # tags = TagSerializer(many=True)
-#     # tag = TagSerializer()
-
-#     class Meta:
-#         model = Post
-#         fields = ['id', 'title', 'created', 'tags', 'tag']
-
-
-# class PostUpdateSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Post
-#         fields = ['title', 'tag']
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'

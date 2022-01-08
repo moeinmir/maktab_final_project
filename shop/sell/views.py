@@ -32,6 +32,7 @@ from rest_framework import generics, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from .filter import *
 
 
 class ShopAdmin(LoginRequiredMixin, View):
@@ -210,29 +211,9 @@ class ComodityListView(ListView):
 
 # rest
 
-# class UserDetail(mixins.RetrieveModelMixin,
-#                  mixins.UpdateModelMixin,
-#                  mixins.DestroyModelMixin,
-#                  generics.GenericAPIView):
-
-#     queryset = MUser.objects.all()
-#     serializer_class = UserSerializer
-
-#     def get(self, request, *args, **kwargs):
-#         return self.retrieve(request, *args, **kwargs)
-
-#     def delete(self, request, *args, **kwargs):
-#         return self.destroy(request, *args, **kwargs)
-
-#     def put(self, request, *args, **kwargs):
-#         return self.update(request, *args, **kwargs)
-
-
 class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
     queryset = MUser.objects.all()
-    # permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
-
 
 # this get is just for convinient and should be omited
 
@@ -249,7 +230,6 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
         print(serializer['username'].value)
         user = MUser.objects.create_user(
             serializer['username'].value, serializer['email'].value, serializer['password'].value, phonenumber=serializer['phonenumber'].value)
-        # = self.perform_create(serializer)
         resp_serializer = ProfileSerializer(user)
         headers = self.get_success_headers(serializer.data)
         return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -263,26 +243,26 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
     permission_classes = (IsAuthenticated,)
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
-    # def get(self, request, *args, **kwargs):
-    #     return self.list(request, *args, **kwargs)
 
-    # def get(self, request, *args, **kwargs):
-    #     return self.list(request, *args, **kwargs)
+    def get(self, request):
+        user_profile = Profile.objects.get(costumer=self.request.user)
+        serializer = self.get_serializer(user_profile)
+        return Response(serializer.data)
 
-    # def delete(self, request, *args, **kwargs):
-    #     return self.destroy(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
-    # def put(self, request, *args, **kwargs):
-    #     return self.update(request, *args, **kwargs)
+    def put(self, request):
 
-    # def post(self, request, *args, **kwargs):
-    #     return self.create(request, *args, **kwargs)
+        profile = Profile.objects.get(costumer=self.request.user)
+        serialized = ProfileSerializer(profile, data=request.data)
 
-    # def get_serializer_class(self):
-    #     if self.request.method == 'GET':
-    #         return PostSerializer
-    #     elif self.request.method == 'POST':
-    #         return PostCreateSerializer
+        if serialized.is_valid():
+            serialized.update(profile, serialized.validated_data)
+            return Response(data={"status": "api_user_update_ok"}, status=status.HTTP_201_CREATED)
+
+        else:
+            return Response(data={"status": "api_user_update_failed", "error": serialized.errors.get('email')[0]}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -295,26 +275,69 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
     def perform_create(self, serializer):
         return serializer.save(costumer=self.request.user)
 
-    def get_queryset(self):
-        if self.request.method == 'GET':
-            Profile.objects.get(costumer=request.user)
-    #     # else:
-        #     return Post.objects.filter(creator=self.request.user)
 
-    # def get_serializer_class(self):
-    #     if self.request.method == 'GET':
-    #         return PostSerializer
-    #     elif self.request.method == 'POST':
-    #         return PostCreateSerializer
+class ShopList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = Shop.objects.filter(status='confirmed')
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ShopSerializer
+    filterset_class = ShopTypeFilter
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class TypeList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = Category.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TypeSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = ListOfComodity.objects.filter(status='existing')
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ProductSerializer
+    filterset_class = ShopTypeFilter
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ShopBasketSerializer
+    # queryset = Profile.objects.all()
+
+    # def get(self, request):
+    #     user_profile = Profile.objects.get(costumer=self.request.user)
+    #     serializer = self.get_serializer(user_profile)
+    #     return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    # def put(self, request):
+
+    #     profile = Profile.objects.get(costumer=self.request.user)
+    #     serialized = ProfileSerializer(profile, data=request.data)
+
+    #     if serialized.is_valid():
+    #         serialized.update(profile, serialized.validated_data)
+    #         return Response(data={"status": "api_user_update_ok"}, status=status.HTTP_201_CREATED)
+
+    #     else:
+    #         return Response(data={"status": "api_user_update_failed", "error": serialized.errors.get('email')[0]}, status=status.HTTP_400_BAD_REQUEST)
 
     # def create(self, request, *args, **kwargs):
-    #     # PostCreateSerializer(data=request.data)
     #     serializer = self.get_serializer(data=request.data)
     #     serializer.is_valid(raise_exception=True)
-    #     post = self.perform_create(serializer)
-    #     resp_serializer = PostSerializer(post)
+    #     profile = self.perform_create(serializer)
+    #     resp_serializer = ProfileSerializer(profile)
     #     headers = self.get_success_headers(serializer.data)
     #     return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     # def perform_create(self, serializer):
-    #     return serializer.save()
+    #     return serializer.save(costumer=self.request.user)

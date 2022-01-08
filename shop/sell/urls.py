@@ -31,5 +31,11 @@ urlpatterns = [
 
     path('api/profile/', ProfileRegister.as_view(), name='profile_register'),
 
+    path('api/shop_list/', ShopList.as_view(), name='shop_list'),
 
+    path('api/type_list/', TypeList.as_view(), name='type_list'),
+
+    path('api/product_list/', ProductList.as_view(), name='product_list'),
+
+    path('api/add_shop_basket/', AddShopBasket.as_view(), name='add_shop_basket'),
 ]
