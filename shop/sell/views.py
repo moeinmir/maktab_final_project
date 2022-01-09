@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db.models.query import QuerySet
 from django.http.response import Http404
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
@@ -309,35 +310,159 @@ class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gen
 
     permission_classes = (IsAuthenticated,)
     serializer_class = ShopBasketSerializer
-    # queryset = Profile.objects.all()
-
-    # def get(self, request):
-    #     user_profile = Profile.objects.get(costumer=self.request.user)
-    #     serializer = self.get_serializer(user_profile)
-    #     return Response(serializer.data)
+    QuerySet = ListOfComodity.objects.all()
 
     def post(self, request, *args, **kwargs):
+        print(ShopBasket.objects.all())
+        if not ShopBasket.objects.filter(costumer=self.request.user, status='processing'):
+            self.shop = ListOfComodity.objects.get(
+                id=kwargs['product_id']).shop
+            return self.create(request, *args, **kwargs)
+        else:
+            shop_basket = ShopBasket.objects.get(
+                costumer=self.request.user, status='processing')
+            resp_serializer = ShopBasketSerializer(shop_basket)
+            return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+
+    def create(self, request, *args, **kwargs):
+        self.shop = ListOfComodity.objects.get(id=kwargs['product_id']).shop
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        shop_basket = self.perform_create(serializer)
+        resp_serializer = ShopBasketSerializer(shop_basket)
+        # headers = self.get_success_headers(serializer.data)
+        return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        return serializer.save(costumer=self.request.user, shop=self.shop)
+
+
+class AddOrder(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrderSerializer
+    QuerySet = Order.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        print(kwargs['number'])
+        # self.shop_basket = ShopBasket.objects.filter(
+        #     costumer=self.request.user, status='processing')
         return self.create(request, *args, **kwargs)
 
-    # def put(self, request):
+    def create(self, request, *args, **kwargs):
 
-    #     profile = Profile.objects.get(costumer=self.request.user)
-    #     serialized = ProfileSerializer(profile, data=request.data)
+        self.shop_basket = ShopBasket.objects.filter(
+            costumer=self.request.user, status='processing')[0]
+        self.product = ListOfComodity.objects.get(id=kwargs['product_id'])
+        self.number = kwargs['number']
+        print(self.product.remaining_stock)
+        print(self.number)
 
-    #     if serialized.is_valid():
-    #         serialized.update(profile, serialized.validated_data)
-    #         return Response(data={"status": "api_user_update_ok"}, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = self.perform_create(serializer)
+        resp_serializer = OrderSerializer(order)
+        # headers = self.get_success_headers(serializer.data)
+        return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
 
-    #     else:
-    #         return Response(data={"status": "api_user_update_failed", "error": serialized.errors.get('email')[0]}, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        return serializer.save(costumer=self.request.user, shop_basket=self.shop_basket, number=self.number, comodity=self.product)
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     profile = self.perform_create(serializer)
-    #     resp_serializer = ProfileSerializer(profile)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    # def perform_create(self, serializer):
-    #     return serializer.save(costumer=self.request.user)
+class DeleteOrder(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrderSerializer
+    QuerySet = Order.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class DeleteOrder(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+
+    def get_object(self, id):
+        try:
+            return Order.objects.get(id=id)
+        except Order.DoesNotExist:
+            raise Http404
+
+    # def get(self, request, pk, format=None):
+    #     snippet = self.get_object(pk)
+    #     serializer = SnippetSerializer(snippet)
+    #     return Response(serializer.data)
+
+    # def put(self, request, pk, format=None):
+    #     snippet = self.get_object(pk)
+    #     serializer = SnippetSerializer(snippet, data=request.DATA)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id, format=None):
+        order = self.get_object(id)
+        order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PayShopBasket(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+
+    def get_object(self, id):
+        try:
+            return ShopBasket.objects.get(id=id)
+        except ShopBasket.DoesNotExist:
+            raise Http404
+
+    # def get(self, request, pk, format=None):
+    #     snippet = self.get_object(pk)
+    #     serializer = SnippetSerializer(snippet)
+    #     return Response(serializer.data)
+
+    def put(self, request, id, format=None):
+        shop_basket = self.get_object(id)
+        serializer = ShopBasketSerializer(shop_basket, data=request.data)
+        if serializer.is_valid():
+            serializer.save(status='payed')
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # def delete(self, request, id, format=None):
+    #     order = self.get_object(id)
+    #     order.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    # queryset = ShopBasket.objects.filter(costumer=request.user)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ShopBasketSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return ShopBasket.objects.filter(
+            costumer=self.request.user)
+
+
+class OpenShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    # queryset = ShopBasket.objects.filter(
+    #     costumer=request.user, status='processing')
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ShopBasket
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return ShopBasket.objects.filter(
+            costumer=self.request.user, status='processing')

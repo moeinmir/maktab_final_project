@@ -15,7 +15,7 @@ delete_status_choice = (('delete', 'delete'), ('undelete', 'undelete'))
 comodity_status_choices = (('existing', 'existing'),
                            ('notexisting', 'notexisting'))
 basket_status_choices = (('processing', 'processing'),
-                         ('confirmed', 'confirmed'), ('payed', 'payed'))
+                         ('confirmed', 'confirmed'), ('payed', 'payed'), ('canceled', 'canceled'))
 
 search_status_choices = (('processing', 'processing'),
                          ('confirmed', 'confirmed'), ('payed', 'payed'), ('all', 'all'))
@@ -95,7 +95,7 @@ class Order(models.Model):
         MUser, on_delete=models.CASCADE, null=True, blank=True)
     comodity = models.ForeignKey(
         ListOfComodity, on_delete=models.CASCADE, null=True, blank=True)
-    number = models.PositiveIntegerField()
+    number = models.PositiveIntegerField(null=True, blank=True)
     created_on = models.DateField(auto_now_add=True, null=True, blank=True)
     update_on = models.DateField(auto_now=True, null=True, blank=True)
     shop_basket = models.ForeignKey(
@@ -103,10 +103,10 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         price = self.comodity.price
-        if self.comodity.remaining_stock >= self.number:
-            self.shop_basket.total_price += self.number*price
+        if self.comodity.remaining_stock >= int(self.number):
+            self.shop_basket.total_price += int(self.number)*price
             self.shop_basket.save()
-            self.comodity.remaining_stock -= self.number
+            self.comodity.remaining_stock -= int(self.number)
             self.comodity.save()
             self.costumer = self.shop_basket.costumer
             super(Order, self).save(*args, **kwargs)
