@@ -1,3 +1,4 @@
+import psycopg2
 from django.contrib import messages
 from django.db.models.query import QuerySet
 from django.http.response import Http404
@@ -29,7 +30,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import generics, mixins
-
+from django.db.models import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -210,6 +211,54 @@ class ComodityListView(ListView):
             shop=self.model2.objects.get(owner=self.request.user))
 
 
+# try:
+#     conn = psycopg2.connect(
+#         "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
+# except:
+#     print("I am unable to connect to the database")
+
+# cur = conn.cursor()
+
+# cur.execute("""SELECT * from auser_muser""")
+
+
+class SellReport(LoginRequiredMixin, View):
+
+    model = ListOfComodity
+    model1 = ShopBasket
+    model2 = Order
+    model3 = Shop
+
+    def get(self, request, id, **kwargs):
+        # cur.execute("""SELECT * from auser_muser""")
+        # rows = cur.fetchall()
+        # print(rows)
+        # user = rows
+        # user = MUser.objects.annotate(
+        #     count=Count("shopbasket"), total_buy=Sum('total_price')).order_by("-count")
+
+        # user = MUser.objects.all().prefetch_related(
+        #     Prefetch('shop_basket', ShopBasket.objects.annotate(fc=Sum('total_price'))))
+
+        # user = ShopBasket.objects.filter(
+        #     status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
+        #     'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), number_of_order=Count('order'))
+
+        user = ShopBasket.objects.filter(
+            status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
+            'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), last_update=F('update_on'), number_of_product=Sum('order__number')).order_by('-total_buy')
+
+        if request.user.id == id:
+            if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
+                shop_basket = self.model1.objects.filter(
+                    shop=self.model3.objects.get(owner=request.user)).order_by('created_on')
+
+                return render(request, 'sell_report.html', {'shop_basket': shop_basket, 'user': user})
+            else:
+                messages.error(request, 'وضعیت فروشگاه شما تایید شده نیست')
+                return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
+
+
 # rest
 
 class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
@@ -300,7 +349,7 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gener
     queryset = ListOfComodity.objects.filter(status='existing')
     permission_classes = (IsAuthenticated,)
     serializer_class = ProductSerializer
-    filterset_class = ShopTypeFilter
+    filterset_class = ProductTypeFilter
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)

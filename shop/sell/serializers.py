@@ -5,7 +5,7 @@ from auser.models import *
 from .models import *
 from post.models import *
 
-User = get_user_model()
+# User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):

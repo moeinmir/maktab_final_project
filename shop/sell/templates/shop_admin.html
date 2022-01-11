@@ -19,6 +19,8 @@
             <hr>
             <li><a href="comodity_list_view/{{user.id}}">لیست محصولات</a></li>
             <hr>
+            <li><a href="{% url 'sell:sell_report' user.id %}">گزارش خرید مشتریان </a></li>
+            <hr>
             <li><a href="{% url 'post:post_list' %}">وبلاگ</a></li>
             <hr>
         </div>

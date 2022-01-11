@@ -1,0 +1,81 @@
+{% extends "shop_base.html" %}
+{% block content %}
+<div class="container">
+    <h3>گزارش فروش مشتریان</h3>
+</div>
+<hr>
+
+{% for s in shop_basket %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <h4>
+                نام کاربری مشتری: {{s.costumer.username }}
+            </h4>
+            <hr>
+            <h4>
+                قیمت کل سبد خرید: {{s.total_price}}
+            </h4>
+            <hr>
+            <h4>
+                وضعیت: {{s.status}}
+            </h4>
+        </div>
+        <div class="col-sm-4">
+
+            <hr>
+        </div>
+    </div>
+</div>
+<hr>
+
+
+
+
+
+
+{% endfor %}
+
+
+<div class="container">
+
+
+
+    <table class="table-bordered">
+        <tr>
+            <th>نام کابری مشتری</th>
+            <th>مبلغ کل خریداری شده</th>
+            <th>تعداد خرید انجام شده</th>
+            <th>تعداد کالای خریداری شده</th>
+            <th>تاریخ آخرین خرید</th>
+
+        </tr>
+
+        {% for u in user %}
+        <tr>
+            <td>{{u.costumer__username}}</td>
+            <td>{{u.total_buy}}</td>
+            <td>{{u.number_of_buy}}</td>
+            <td>{{u.number_of_product}}</td>
+            <td>{{u.last_update}}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</div>
+
+
+
+{{ u.count }}
+{{ u.total_buy }}
+
+{{ u.number_of_buy }}
+
+
+{{u.username}}
+
+
+{{ u.number_of_order }}
+
+{% endblock %}

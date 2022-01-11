@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'auser',
     'sorl.thumbnail',
     'mathfilters',
-    'rest_framework',
+    'rest_framework',  # required for serving swagger ui's css/js files
+    'drf_yasg',
+
 ]
 
 MIDDLEWARE = [
@@ -182,3 +184,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+
+# SWAGGER_SETTINGS = {
+#     ...
+#     'VALIDATOR_URL': 'http://localhost:8189',
+#     ...
+# }

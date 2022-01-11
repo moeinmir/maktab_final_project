@@ -13,18 +13,25 @@ urlpatterns = [
     path('shop_admin/<int:id>',
          ShopAdmin.as_view(template_name='shop_admin.html'), name='shop_admin'),
     path('shop_admin/shop_register/<int:id>',
+
          ShopRegister.as_view()),
     path('shop_admin/add_product/<int:id>',
+
          AddProduct.as_view()),
     path('shop_admin/shop_basket/<int:id>',
          ShopBasketView.as_view(), name='shop_basket'),
+
     path('shop_admin/shop_basket/shop_basket_details/<int:id>',
          ShopBasketDetailView.as_view(), name='shop_basket_details'),
+         
     path('shop_admin/shop_edit/<int:id>',
          ShopEditView.as_view(), name='shop_edit'),
 
     path('shop_admin/comodity_list_view/<int:id>',
          ComodityListView.as_view(), name='comodity_list_view'),
+
+    path('shop_admin/sell_report/<int:id>',
+         SellReport.as_view(), name='sell_report'),
     # rest
 
     path('api/user/', UserRegister.as_view(), name='user_register'),
@@ -36,6 +43,9 @@ urlpatterns = [
     path('api/type_list/', TypeList.as_view(), name='type_list'),
 
     path('api/product_list/', ProductList.as_view(), name='product_list'),
+
+
+
 
     path('api/add_shop_basket/<product_id>',
          AddShopBasket.as_view(), name='add_shop_basket'),

@@ -12,7 +12,7 @@ class ShopTypeFilter(django_filters.FilterSet):
         fields = ['category']
 
 
-class ShopTypeFilter(django_filters.FilterSet):
+class ProductTypeFilter(django_filters.FilterSet):
     # creator_isnull = django_filters.BoleanFilter(field_name='creator', lookup_expr='isnull')
     class Meta:
         model = ListOfComodity
