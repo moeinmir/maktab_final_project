@@ -23,7 +23,7 @@ urlpatterns = [
 
     path('shop_admin/shop_basket/shop_basket_details/<int:id>',
          ShopBasketDetailView.as_view(), name='shop_basket_details'),
-         
+
     path('shop_admin/shop_edit/<int:id>',
          ShopEditView.as_view(), name='shop_edit'),
 
@@ -36,13 +36,14 @@ urlpatterns = [
 
     path('api/user/', UserRegister.as_view(), name='user_register'),
 
-    path('api/profile/', ProfileRegister.as_view(), name='profile_register'),
+    path('api/user/profile/', ProfileRegister.as_view(), name='profile_register'),
 
-    path('api/shop_list/', ShopList.as_view(), name='shop_list'),
+    path('api/shop/', ShopList.as_view(), name='shop_list'),
 
-    path('api/type_list/', TypeList.as_view(), name='type_list'),
+    path('api/shop/type', TypeList.as_view(), name='type_list'),
 
-    path('api/product_list/', ProductList.as_view(), name='product_list'),
+    path('api/shop/<shop_id>/product/',
+         ProductList.as_view(), name='product_list'),
 
 
 

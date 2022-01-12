@@ -33,7 +33,16 @@ class TypeSerializer(serializers.ModelSerializer):
         fields = ['id', 'category_name']
 
 
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ['tag_name']
+
+
 class ProductSerializer(serializers.ModelSerializer):
+    tag = TagSerializer(many=True)
+
     class Meta:
         model = ListOfComodity
         fields = '__all__'

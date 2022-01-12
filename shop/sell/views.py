@@ -1,3 +1,4 @@
+from os import stat
 import psycopg2
 from django.contrib import messages
 from django.db.models.query import QuerySet
@@ -244,16 +245,26 @@ class SellReport(LoginRequiredMixin, View):
         #     status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
         #     'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), number_of_order=Count('order'))
 
+        # user = ShopBasket.objects.filter(
+        #     status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
+        #     'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), last_update=F('update_on'), number_of_product=Sum('order__number')).order_by('-total_buy')
+
         user = ShopBasket.objects.filter(
             status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
-            'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), last_update=F('update_on'), number_of_product=Sum('order__number')).order_by('-total_buy')
+            'costumer', 'costumer__username').annotate(total_buy=Sum('total_price')).annotate(number_of_buy=Count('costumer')).order_by('-total_buy')
 
+        number_of_product = ShopBasket.objects.filter(
+            status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
+            'costumer', 'costumer__username').annotate(last_update=F('update_on'), number_of_product=Sum('order__number')).order_by('-number_of_product')
+
+        total_sell = ShopBasket.objects.filter(
+            status='payed', shop=self.model3.objects.get(owner=self.request.user)).aggregate(total_sell=Sum('total_price'))
         if request.user.id == id:
             if self.model3.objects.get(owner=request.user).delete_status == 'undelete':
                 shop_basket = self.model1.objects.filter(
                     shop=self.model3.objects.get(owner=request.user)).order_by('created_on')
 
-                return render(request, 'sell_report.html', {'shop_basket': shop_basket, 'user': user})
+                return render(request, 'sell_report.html', {'shop_basket': shop_basket, 'user': user, 'total_sell': total_sell, 'number_of_product': number_of_product})
             else:
                 messages.error(request, 'وضعیت فروشگاه شما تایید شده نیست')
                 return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
@@ -267,12 +278,12 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
 
 # this get is just for convinient and should be omited
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    # def get(self, request, *args, **kwargs):
+    #     return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.create(request, *args, **kwargs)
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(status=200)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -309,7 +320,7 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
 
         if serialized.is_valid():
             serialized.update(profile, serialized.validated_data)
-            return Response(data={"status": "api_user_update_ok"}, status=status.HTTP_201_CREATED)
+            return Response(data={"status": "api_user_update_ok"}, status=200)
 
         else:
             return Response(data={"status": "api_user_update_failed", "error": serialized.errors.get('email')[0]}, status=status.HTTP_400_BAD_REQUEST)
@@ -320,7 +331,7 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
         profile = self.perform_create(serializer)
         resp_serializer = ProfileSerializer(profile)
         headers = self.get_success_headers(serializer.data)
-        return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(resp_serializer.data, status=200, headers=headers)
 
     def perform_create(self, serializer):
         return serializer.save(costumer=self.request.user)
@@ -335,6 +346,17 @@ class ShopList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=200)
+
 
 class TypeList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
     queryset = Category.objects.all()
@@ -343,6 +365,17 @@ class TypeList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=200)
 
 
 class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
@@ -353,6 +386,21 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gener
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        shop = Shop.objects.get(id=kwargs['shop_id'])
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=200)
+
+    def get_queryset(self):
+        return self.queryset.filter(shop_id=self.kwargs.get('shop_id'))
 
 
 class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):

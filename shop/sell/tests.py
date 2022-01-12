@@ -1,3 +1,4 @@
+from django.http import request
 from django.test import TestCase
 
 # Create your tests here.
@@ -12,7 +13,7 @@ from model_mommy import mommy
 # User = get_user_model()
 
 
-class TestPost(APITestCase):
+class TestPost(APITestCase, TestCase):
 
     def setUp(self):
         # user = User(username='dev', password='123')
@@ -33,7 +34,7 @@ class TestPost(APITestCase):
         self.order = mommy.make(
             Order, comodity=self.product, costumer=self.user_costumer, shop_basket=self.shop_basket, number=1)
 
-    def test_post_list(self):
+    def test_one_order(self):
         # url = reverse('post_list')
 
         # resp = self.client.get(url)
@@ -43,6 +44,52 @@ class TestPost(APITestCase):
         print(self.shop_basket.total_price)
 
         self.assertEqual(self.product.price, self.shop_basket.total_price)
+
+    def test_register(self):
+        url = reverse('sell:user_register')
+        data = {'username': 'user1',
+                'password': 'pass1'
+                }
+        resp = self.client.post(url, data=data)
+        user = MUser.objects.all()
+        self.assertEqual(resp.status_code, 200)
+
+        self.assertEqual(len(user), 3)
+
+    def test_profile(self):
+        url = reverse('sell:profile_register')
+        data = {'first_name': 'name1'}
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.post(url, data=data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Profile.objects.get(
+            costumer=self.user_costumer).first_name, 'name1')
+        resp = self.client.get(url)
+        self.assertEqual(resp.data['first_name'], 'name1')
+        data = {'first_name': 'name2'}
+        resp = self.client.put(url, data=data)
+        resp = self.client.get(url)
+        self.assertEqual(resp.data['first_name'], 'name2')
+
+    def test_shop_list(self):
+        url = reverse('sell:shop_list')
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_shop_type(self):
+        url = reverse('sell:type_list')
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_shop_product(self):
+        url = reverse('sell:product_list', kwargs={'shop_id': self.shop.id})
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # self.assertEqual(len(user), 3)
 
     # def test_create_post(self):
 

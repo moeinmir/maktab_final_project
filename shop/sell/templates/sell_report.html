@@ -40,28 +40,66 @@
 <div class="container">
 
 
+    کل فروش: {{total_sell.total_sell}}
 
-    <table class="table-bordered">
-        <tr>
-            <th>نام کابری مشتری</th>
-            <th>مبلغ کل خریداری شده</th>
-            <th>تعداد خرید انجام شده</th>
-            <th>تعداد کالای خریداری شده</th>
-            <th>تاریخ آخرین خرید</th>
+</div>
 
-        </tr>
+<div class="container">
 
-        {% for u in user %}
-        <tr>
-            <td>{{u.costumer__username}}</td>
-            <td>{{u.total_buy}}</td>
-            <td>{{u.number_of_buy}}</td>
-            <td>{{u.number_of_product}}</td>
-            <td>{{u.last_update}}</td>
-        </tr>
-        {% endfor %}
+    <div class="row">
+        <div class="col-sm-6">
 
-    </table>
+            <table class="table-bordered">
+                <tr>
+                    <th>نام کابری مشتری</th>
+                    <th>مبلغ کل خریداری شده</th>
+                    <th>تعداد خرید انجام شده</th>
+
+                </tr>
+
+                {% for u in user %}
+                <tr>
+                    <td>{{u.costumer__username}}</td>
+                    <td>{{u.total_buy}}</td>
+                    <td>{{u.number_of_buy}}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+
+
+        </div>
+
+        <div class="col-sm-6">
+            <table class="table-bordered">
+                <tr>
+                    <th>نام کابری مشتری</th>
+                    <th>تعداد کالای خریداری شده</th>
+                    <th>تاریخ آخرین خرید</th>
+
+                </tr>
+
+                {% for u in number_of_product %}
+                <tr>
+                    <td>{{u.costumer__username}}</td>
+                    <td>{{u.number_of_product}}</td>
+                    <td>{{u.last_update}}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+
 
 </div>
 
