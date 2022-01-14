@@ -26,7 +26,7 @@ def make_published(Shop, request, queryset):
 
 
 class ListOfComodityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'status', 'thumbnail_preview')
+    list_display = ('id', 'name', 'status', 'thumbnail_preview')
     list_filter = ('name', 'status')
     search_fields = ('name',)
     date_hierarchy = ('created_on')
@@ -44,7 +44,7 @@ admin.site.register(ListOfComodity, ListOfComodityAdmin)
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('costumer', 'comodity')
+    list_display = ('id', 'costumer', 'comodity')
     list_filter = ('comodity', 'shop_basket')
     search_fields = ('costumer',)
     date_hierarchy = ('created_on')

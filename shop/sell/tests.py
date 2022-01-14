@@ -1,5 +1,6 @@
 from django.http import request
 from django.test import TestCase
+from rest_framework import status
 
 # Create your tests here.
 # from django.contrib.auth import get_user_model
@@ -30,7 +31,8 @@ class TestPost(APITestCase, TestCase):
         self.shop = mommy.make(Shop, owner=self.user_shop)
         self.shop_basket = mommy.make(
             ShopBasket, costumer=self.user_costumer, shop=self.shop)
-        self.product = mommy.make(ListOfComodity, shop=self.shop)
+        self.product = mommy.make(
+            ListOfComodity, shop=self.shop, remaining_stock=1000)
         self.order = mommy.make(
             Order, comodity=self.product, costumer=self.user_costumer, shop_basket=self.shop_basket, number=1)
 
@@ -89,61 +91,43 @@ class TestPost(APITestCase, TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
 
-        # self.assertEqual(len(user), 3)
+    def test_add_shop_basket(self):
+        url = reverse('sell:add_shop_basket', kwargs={
+                      'product_id': self.product.id})
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 200)
+        for i in range(10):
+            resp = self.client.post(url)
+        number_of_open_basket = ShopBasket.objects.filter(
+            status='processing', costumer=self.user_costumer)
+        self.assertEqual(len(number_of_open_basket), 1)
 
-    # def test_create_post(self):
+    def test_add_order(self):
+        url = reverse('sell:add_order', kwargs={
+                      'product_id': self.product.id, 'number': 1})
+        self.client.force_authenticate(self.user_costumer)
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 200)
+        url = reverse('sell:add_order', kwargs={
+                      'product_id': self.product.id, 'number': 4000})
+        resp = self.client.post(url)
+        self.assertNotEqual(resp.status_code, 200)
 
-    #     url = reverse('post_list')
+    def test_delete_order(self):
+        self.client.force_authenticate(self.user_costumer)
+        url = reverse('sell:delete_order', args=[self.order.id])
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, 200)
 
-    #     tag = Tag.objects.first()
-    #     data = {
-    #         'title': 'test title',
-    #         'tag': tag.id
-    #     }
-    #     self.client.force_authenticate(self.user)
+    def test_pay_shop_basket(self):
+        self.client.force_authenticate(self.user_costumer)
+        url = reverse('sell:pay_shop_basket', args=[self.shop_basket.id])
+        resp = self.client.put(url)
+        self.assertEqual(resp.status_code, 200)
 
-    #     resp = self.client.post(url, data=data)
-
-    #     self.assertEqual(resp.status_code, 201)
-
-    #     post = Post.objects.get(id=resp.data['id'])
-
-    #     self.assertEqual(post.creator, self.user)
-    #     self.assertFalse(post.published)
-
-    # def test_update_post(self):
-    #     post = Post(creator=self.user, title='test title', tag=Tag.objects.first())
-    #     post.save()
-
-    #     url = reverse('post_detail', kwargs={'id':post.id})
-    #     new_title = "new title"
-    #     data = {
-    #         "title": new_title,
-    #         "tag": Tag.objects.last().id
-    #     }
-
-    #     self.client.force_authenticate(self.user)
-    #     resp = self.client.put(url, data)
-
-    #     self.assertEqual(resp.status_code, 200)
-
-    #     updated_post = Post.objects.get(id=post.id)
-    #     self.assertEqual(updated_post.title, new_title)
-
-    # def test_update_post_with_invalid_user(self):
-    #     post = Post(creator=self.user, title='test title', tag=Tag.objects.first())
-    #     post.save()
-
-    #     url = reverse('post_detail', kwargs={'id': post.id})
-    #     new_title = "new title"
-    #     data = {
-    #         "title": new_title,
-    #         "tag": Tag.objects.last().id
-    #     }
-
-    #     another_user = mommy.make(User)
-    #     self.client.force_authenticate(another_user)
-
-    #     resp = self.client.put(url, data)
-
-    #     self.assertEqual(resp.status_code, 400)
+    def test_list_shop_basket(self):
+        self.client.force_authenticate(self.user_costumer)
+        url = reverse('sell:shop_basket_costumer_list')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)

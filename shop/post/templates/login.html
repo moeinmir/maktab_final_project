@@ -9,15 +9,40 @@
 
 {% block content %}
 
+<div class="container">
+    <h2>صفحه ورود</h2>
+</div>
+
+
+{% csrf_token %}
+
+<form action="" method="post">
+    <div class="container">
+
+        {% csrf_token %}
+        <hr>
 
 
 
-<h2>Log In</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Log In</button>
+
+        <hr>
+        نام کاربری خود را در قسمت زیر وارد نمایید
+        <hr>
+        {{form.username}}
+        <hr>
+        پسورد خود را در قسمت زیر وارد نمایید
+        <hr>
+        {{form.password}}
+        <hr>
+    </div>
+
+    <div class="container">
+        <input class="btn btn-secondary btn-block" type="submit" value="تایید">
+    </div>
+
+
 </form>
+
 
 
 {% endblock %}

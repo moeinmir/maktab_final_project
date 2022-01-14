@@ -32,37 +32,29 @@ urlpatterns = [
 
     path('shop_admin/sell_report/<int:id>',
          SellReport.as_view(), name='sell_report'),
+
+    path('', views.chart, name='sell_chart'),
+
+    path('sell_chart/', views.sell_chart, name='sell_chart_view'),
+
     # rest
 
     path('api/user/', UserRegister.as_view(), name='user_register'),
-
     path('api/user/profile/', ProfileRegister.as_view(), name='profile_register'),
-
     path('api/shop/', ShopList.as_view(), name='shop_list'),
-
-    path('api/shop/type', TypeList.as_view(), name='type_list'),
-
+    path('api/shop/type/', TypeList.as_view(), name='type_list'),
     path('api/shop/<shop_id>/product/',
          ProductList.as_view(), name='product_list'),
-
-
-
-
-    path('api/add_shop_basket/<product_id>',
+    path('api/shop/product/<product_id>/costumer/cart/',
          AddShopBasket.as_view(), name='add_shop_basket'),
-    path('api/add_order/<product_id>/<number>',
+    path('api/costumer/order/product/<product_id>/<number>',
          AddOrder.as_view(), name='add_order'),
-    path('api/delete_order/<int:id>/',
+    path('api/order/<int:id>',
          DeleteOrder.as_view(), name='delete_order'),
-    path('api/pay_shop_basket/<int:id>/',
+    path('api/cart/pay/<int:id>',
          PayShopBasket.as_view(), name='pay_shop_basket'),
-    path('api/shop_basket_costumer_list/',
+    path('api/cart/',
          ShopBasketCostumerList.as_view(), name='shop_basket_costumer_list'),
-    path('api/open_shop_basket_costumer_list/',
-         OpenShopBasketCostumerList.as_view(), name='open_shop_basket_costumer_list'),
 
 
-
-
-    # url(r'^api/add_shop_basket/(?P<product>\d+)/(?P<slug>[\w-]+)/$', AddShopBasket.as_view(), name='add_shop_basket'),
 ]

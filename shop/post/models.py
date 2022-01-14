@@ -3,12 +3,6 @@ from django.utils.text import slugify
 import random
 import string
 from django.utils.text import slugify
-# from django.contrib.auth.models import User
-# Create your models here.
-
-# from django.contrib.auth import get_user_model
-# User = get_user_model()
-
 from auser.models import MUser
 
 

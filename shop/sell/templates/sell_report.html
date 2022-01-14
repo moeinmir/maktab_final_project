@@ -5,42 +5,20 @@
 </div>
 <hr>
 
-{% for s in shop_basket %}
-<div class="container">
-    <div class="row">
-        <div class="col-sm-8">
-            <h4>
-                نام کاربری مشتری: {{s.costumer.username }}
-            </h4>
-            <hr>
-            <h4>
-                قیمت کل سبد خرید: {{s.total_price}}
-            </h4>
-            <hr>
-            <h4>
-                وضعیت: {{s.status}}
-            </h4>
-        </div>
-        <div class="col-sm-4">
 
-            <hr>
-        </div>
+
+<div class="container">
+    <div>
+
+        <h3>
+            کل فروش: {{total_sell.total_sell}}
+        </h3>
+
     </div>
-</div>
-<hr>
 
+    <hr>
+    <hr>
 
-
-
-
-
-{% endfor %}
-
-
-<div class="container">
-
-
-    کل فروش: {{total_sell.total_sell}}
 
 </div>
 
@@ -49,6 +27,9 @@
     <div class="row">
         <div class="col-sm-6">
 
+            <p>
+                گزارش خرید مشتریان به نرتیب کل مبلغ خریداری شده
+            </p>
             <table class="table-bordered">
                 <tr>
                     <th>نام کابری مشتری</th>
@@ -72,6 +53,11 @@
         </div>
 
         <div class="col-sm-6">
+
+            <p>
+                گزارش خرید مشتریان به نرتیب تعداد کالای خریداری شده
+            </p>
+
             <table class="table-bordered">
                 <tr>
                     <th>نام کابری مشتری</th>

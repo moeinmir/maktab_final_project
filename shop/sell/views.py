@@ -37,6 +37,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .filter import *
 
+from django.shortcuts import render
+from django.db.models import Sum
+from django.http import JsonResponse
+
 
 class ShopAdmin(LoginRequiredMixin, View):
     raise_exception = True
@@ -212,17 +216,6 @@ class ComodityListView(ListView):
             shop=self.model2.objects.get(owner=self.request.user))
 
 
-# try:
-#     conn = psycopg2.connect(
-#         "dbname='postgres' user='postgres' host='localhost' password='1123581321'")
-# except:
-#     print("I am unable to connect to the database")
-
-# cur = conn.cursor()
-
-# cur.execute("""SELECT * from auser_muser""")
-
-
 class SellReport(LoginRequiredMixin, View):
 
     model = ListOfComodity
@@ -231,23 +224,6 @@ class SellReport(LoginRequiredMixin, View):
     model3 = Shop
 
     def get(self, request, id, **kwargs):
-        # cur.execute("""SELECT * from auser_muser""")
-        # rows = cur.fetchall()
-        # print(rows)
-        # user = rows
-        # user = MUser.objects.annotate(
-        #     count=Count("shopbasket"), total_buy=Sum('total_price')).order_by("-count")
-
-        # user = MUser.objects.all().prefetch_related(
-        #     Prefetch('shop_basket', ShopBasket.objects.annotate(fc=Sum('total_price'))))
-
-        # user = ShopBasket.objects.filter(
-        #     status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
-        #     'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), number_of_order=Count('order'))
-
-        # user = ShopBasket.objects.filter(
-        #     status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
-        #     'costumer', 'costumer__username').annotate(total_buy=Sum('total_price'), number_of_buy=Count('costumer'), last_update=F('update_on'), number_of_product=Sum('order__number')).order_by('-total_buy')
 
         user = ShopBasket.objects.filter(
             status='payed', shop=self.model3.objects.get(owner=self.request.user)).values(
@@ -270,7 +246,26 @@ class SellReport(LoginRequiredMixin, View):
                 return HttpResponseRedirect(reverse('sell:shop_admin', args=[request.user.id]))
 
 
+def chart(request):
+    return render(request, 'sell_chart.html')
+
+
+def sell_chart(request):
+    labels = []
+    data = []
+
+    queryset = ShopBasket.objects.filter(status='payed', shop=Shop.objects.get(owner=request.user)).values('update_on').annotate(
+        sell=Sum('total_price')).order_by('-update_on')
+    for entry in queryset:
+        labels.append(entry['update_on'])
+        data.append(entry['sell'])
+
+    return JsonResponse(data={
+        'labels': labels,
+        'data': data,
+    })
 # rest
+
 
 class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
     queryset = MUser.objects.all()
@@ -288,7 +283,6 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(serializer['username'].value)
         user = MUser.objects.create_user(
             serializer['username'].value, serializer['email'].value, serializer['password'].value, phonenumber=serializer['phonenumber'].value)
         resp_serializer = ProfileSerializer(user)
@@ -410,7 +404,6 @@ class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gen
     QuerySet = ListOfComodity.objects.all()
 
     def post(self, request, *args, **kwargs):
-        print(ShopBasket.objects.all())
         if not ShopBasket.objects.filter(costumer=self.request.user, status='processing'):
             self.shop = ListOfComodity.objects.get(
                 id=kwargs['product_id']).shop
@@ -419,7 +412,7 @@ class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gen
             shop_basket = ShopBasket.objects.get(
                 costumer=self.request.user, status='processing')
             resp_serializer = ShopBasketSerializer(shop_basket)
-            return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+            return Response({'message': 'you already had open shop basket', 'date': resp_serializer.data}, status=200)
 
     def create(self, request, *args, **kwargs):
         self.shop = ListOfComodity.objects.get(id=kwargs['product_id']).shop
@@ -427,8 +420,7 @@ class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gen
         serializer.is_valid(raise_exception=True)
         shop_basket = self.perform_create(serializer)
         resp_serializer = ShopBasketSerializer(shop_basket)
-        # headers = self.get_success_headers(serializer.data)
-        return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'message': 'a shop basket created', 'date': resp_serializer.data}, status=200)
 
     def perform_create(self, serializer):
         return serializer.save(costumer=self.request.user, shop=self.shop)
@@ -441,125 +433,89 @@ class AddOrder(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
     QuerySet = Order.objects.all()
 
     def post(self, request, *args, **kwargs):
-        print(kwargs['number'])
-        # self.shop_basket = ShopBasket.objects.filter(
-        #     costumer=self.request.user, status='processing')
         return self.create(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
 
         self.shop_basket = ShopBasket.objects.filter(
             costumer=self.request.user, status='processing')[0]
-        self.product = ListOfComodity.objects.get(id=kwargs['product_id'])
-        self.number = kwargs['number']
+        self.product = ListOfComodity.objects.get(id=int(kwargs['product_id']))
+        self.number = int(kwargs['number'])
+        print(int(self.number))
         print(self.product.remaining_stock)
-        print(self.number)
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = self.perform_create(serializer)
-        resp_serializer = OrderSerializer(order)
-        # headers = self.get_success_headers(serializer.data)
-        return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+        if int(self.number) <= self.product.remaining_stock:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            order = self.perform_create(serializer)
+            resp_serializer = OrderSerializer(order)
+            return Response(resp_serializer.data, status=200)
+        else:
+            return Response(status=400)
 
     def perform_create(self, serializer):
         return serializer.save(costumer=self.request.user, shop_basket=self.shop_basket, number=self.number, comodity=self.product)
 
 
-class DeleteOrder(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
-    lookup_field = 'id'
-    lookup_url_kwarg = 'id'
-
-    permission_classes = (IsAuthenticated,)
-    serializer_class = OrderSerializer
-    QuerySet = Order.objects.all()
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
 class DeleteOrder(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self, id):
         try:
-            return Order.objects.get(id=id)
+            if self.request.user == Order.objects.get(id=id).costumer:
+                return Order.objects.get(id=id)
+
         except Order.DoesNotExist:
             raise Http404
 
-    # def get(self, request, pk, format=None):
-    #     snippet = self.get_object(pk)
-    #     serializer = SnippetSerializer(snippet)
-    #     return Response(serializer.data)
-
-    # def put(self, request, pk, format=None):
-    #     snippet = self.get_object(pk)
-    #     serializer = SnippetSerializer(snippet, data=request.DATA)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def delete(self, request, id, format=None):
         order = self.get_object(id)
+        self.product = order.comodity
+        self.product.remaining_stock += order.number
+        self.product.status = 'existing'
+        self.product.save()
+        self.shop_basket = order.shop_basket
+        self.shop_basket.total_price -= order.number*self.product.price
+        if self.shop_basket.total_price == 0:
+            self.shop_basket.status = 'canceled'
+        self.shop_basket.save()
         order.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=200)
 
 
 class PayShopBasket(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
-
     def get_object(self, id):
         try:
             return ShopBasket.objects.get(id=id)
         except ShopBasket.DoesNotExist:
             raise Http404
 
-    # def get(self, request, pk, format=None):
-    #     snippet = self.get_object(pk)
-    #     serializer = SnippetSerializer(snippet)
-    #     return Response(serializer.data)
-
     def put(self, request, id, format=None):
         shop_basket = self.get_object(id)
         serializer = ShopBasketSerializer(shop_basket, data=request.data)
         if serializer.is_valid():
             serializer.save(status='payed')
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # def delete(self, request, id, format=None):
-    #     order = self.get_object(id)
-    #     order.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
 
 
 class ShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
-    # queryset = ShopBasket.objects.filter(costumer=request.user)
     permission_classes = (IsAuthenticated,)
     serializer_class = ShopBasketSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return ShopBasket.objects.filter(
-            costumer=self.request.user)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
 
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-class OpenShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
-    # queryset = ShopBasket.objects.filter(
-    #     costumer=request.user, status='processing')
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ShopBasket
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=200)
 
     def get_queryset(self):
         return ShopBasket.objects.filter(
-            costumer=self.request.user, status='processing')
+            costumer=self.request.user, status='payed')
