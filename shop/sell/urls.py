@@ -56,5 +56,9 @@ urlpatterns = [
     path('api/cart/',
          ShopBasketCostumerList.as_view(), name='shop_basket_costumer_list'),
 
+    path('api/user/phoneregister/',
+         UserRegisterWithPhone.as_view(), name='user_register_with_phone'),
+    path('api/user/otp/<phonenumber>',
+         OtpRequest.as_view(), name='otp_request'),
 
 ]

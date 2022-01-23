@@ -1,3 +1,6 @@
+from random import randint
+import redis
+from drf_yasg.utils import swagger_auto_schema
 from os import stat
 import psycopg2
 from django.contrib import messages
@@ -36,10 +39,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .filter import *
-
+from .melli.melli.melipayamak import Api
 from django.shortcuts import render
 from django.db.models import Sum
 from django.http import JsonResponse
+import sys
+sys.path.append("..")
 
 
 class ShopAdmin(LoginRequiredMixin, View):
@@ -271,10 +276,11 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
     queryset = MUser.objects.all()
     serializer_class = UserSerializer
 
+
 # this get is just for convinient and should be omited
 
-    # def get(self, request, *args, **kwargs):
-    #     return self.list(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.create(request, *args, **kwargs)
@@ -285,7 +291,7 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
         serializer.is_valid(raise_exception=True)
         user = MUser.objects.create_user(
             serializer['username'].value, serializer['email'].value, serializer['password'].value, phonenumber=serializer['phonenumber'].value)
-        resp_serializer = ProfileSerializer(user)
+        resp_serializer = UserSerializer(user)
         headers = self.get_success_headers(serializer.data)
         return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -483,6 +489,7 @@ class DeleteOrder(APIView):
 
 
 class PayShopBasket(APIView):
+    @swagger_auto_schema(request_body=ShopBasketSerializer)
     def get_object(self, id):
         try:
             return ShopBasket.objects.get(id=id)
@@ -519,3 +526,118 @@ class ShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, gen
     def get_queryset(self):
         return ShopBasket.objects.filter(
             costumer=self.request.user, status='payed')
+
+
+redis = redis.Redis(host='localhost', port='6379',
+                    charset="utf-8", decode_responses=True)
+# redis.set('mykey', 'Hello from Python!')
+# value = redis.get('mykey')
+# print(value)
+
+
+class UserRegisterWithPhone(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = MUser.objects.all()
+    serializer_class = UserSerializer
+
+
+# this get is just for convinient and should be omited
+
+    def get(self, request, *args, **kwargs):
+        # print('dddddddddddd')
+        # ran = randint(10000, 99999)
+        # print(ran)
+        # redis.set(request.data['phonenumber'], ran)
+        # redis.expire(request.data['phonenumber'], 10000)
+        # return Response(status=200)
+
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        print(type(request.data.keys()))
+        if 'password' in request.data.keys():
+            if redis.get(request.data['phonenumber']) == request.data['password']:
+                print('lets creat a user')
+                self.create(request, *args, **kwargs)
+
+            else:
+                return Response(status=400)
+        else:
+            print('lets send a password')
+            ran = randint(10000, 99999)
+            print(ran)
+            redis.set(request.data['phonenumber'], ran)
+            redis.expire(request.data['phonenumber'], 10000)
+            return Response(status=200)
+
+    def create(self, request, *args, **kwargs):
+        # serializer = self.get_serializer(
+        #     data={"username": request.data['phonenumber'], "phonenumber": request.data["phonenumber"]})
+        # serializer.is_valid(raise_exception=True)
+        user = MUser.objects.create_user(
+            username=request.data['phonenumber'], phonenumber=request.data['phonenumber'])
+        user.set_unusable_password()
+        serializer = self.get_serializer(user)
+        serializer.is_valid(raise_exception=True)
+        # serializer.set_unusable_password('user with out password')
+        # resp_serializer = UserSerializer(user)
+        # if resp_serializer.is_valid():
+        return Response(status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        return serializer.save()
+
+
+class OtpRequest(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+
+    # permission_classes = (IsAuthenticated,)
+    serializer_class = MUser
+    QuerySet = Order.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+
+        self.user = MUser.objects.filter(phonenumber=kwargs['phonenumber'])[0]
+        if self.user:
+            otp = randint(10000, 99999)
+            print('dddddddddddd')
+            ran = randint(10000, 99999)
+            redis.set(self.user.id, ran)
+            redis.expire(self.user.id, 10000)
+            print(redis.get(self.user.id))
+            return Response(status=200)
+
+        else:
+            return Response(status=400)
+
+
+class OtpLogin(object):
+    """
+    Custom Email Backend to perform authentication via email
+    """
+    # print('fffffffffffffffffffffffffff')
+
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        print('fffffffffffffffffffffffffff')
+        my_user_model = get_user_model()
+        try:
+            print('ggggggggggggggggg')
+            print('fff')
+            user = my_user_model.objects.get(phonenumber=username)
+            print(user)
+            print('ddd')
+
+            if redis.get(user.id) == password:
+                return user  # return user on valid credentials
+        except my_user_model.DoesNotExist:
+            return None  # return None if custom user model does not exist
+        except:
+            return None  # return None in case of other exceptions
+
+    def get_user(self, user_id):
+        my_user_model = get_user_model()
+        try:
+            return my_user_model.objects.get(pk=user_id)
+        except my_user_model.DoesNotExist:
+            return None
