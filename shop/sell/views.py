@@ -1,3 +1,11 @@
+from drf_spectacular.utils import extend_schema
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from lib2to3.pgen2.token import NAME
+from random import randint
+from turtle import title
+import redis
+from drf_yasg.utils import swagger_auto_schema
 from os import stat
 import psycopg2
 from django.contrib import messages
@@ -36,10 +44,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .filter import *
-
+from .melli.melli.melipayamak import Api
 from django.shortcuts import render
 from django.db.models import Sum
 from django.http import JsonResponse
+import sys
+sys.path.append("..")
 
 
 class ShopAdmin(LoginRequiredMixin, View):
@@ -271,23 +281,25 @@ class UserRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gene
     queryset = MUser.objects.all()
     serializer_class = UserSerializer
 
-# this get is just for convinient and should be omited
+    @swagger_auto_schema(operation_description="this part is for convinent and should be ommited in the operation", operation_summary="reciving users information")
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
-    # def get(self, request, *args, **kwargs):
-    #     return self.list(request, *args, **kwargs)
-
+    @swagger_auto_schema(operation_description="you can send your information through and if they are valid you will be registered as u user", operation_summary="user registering")
     def post(self, request, *args, **kwargs):
         self.create(request, *args, **kwargs)
         return Response(status=200)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = MUser.objects.create_user(
-            serializer['username'].value, serializer['email'].value, serializer['password'].value, phonenumber=serializer['phonenumber'].value)
-        resp_serializer = ProfileSerializer(user)
-        headers = self.get_success_headers(serializer.data)
-        return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        if serializer.is_valid(raise_exception=True):
+            user = MUser.objects.create_user(
+                serializer['username'].value, serializer['email'].value, serializer['password'].value, phonenumber=serializer['phonenumber'].value)
+            resp_serializer = UserSerializer(user)
+            headers = self.get_success_headers(serializer.data)
+            return Response(resp_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response(status=400)
 
     def perform_create(self, serializer):
         return serializer.save()
@@ -299,14 +311,20 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
 
+    @swagger_auto_schema(operation_description="if you are logged in and you have a profile you can recive its information through this link", operation_summary="recieving your profile information")
     def get(self, request):
-        user_profile = Profile.objects.get(costumer=self.request.user)
-        serializer = self.get_serializer(user_profile)
-        return Response(serializer.data)
+        try:
+            user_profile = Profile.objects.get(costumer=self.request.user)
+            serializer = self.get_serializer(user_profile)
+            return Response(serializer.data)
+        except:
+            return Response(status=400)
 
+    @swagger_auto_schema(operation_description="if you are logged in you can send the data for your profile and if the data was valid your profile will be registered", operation_summary="registering the profile")
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+    @swagger_auto_schema(operation_description="if you are logged in and you have a profile you can modify its information through this link", operation_summary="modifying the profile")
     def put(self, request):
 
         profile = Profile.objects.get(costumer=self.request.user)
@@ -317,15 +335,18 @@ class ProfileRegister(mixins.ListModelMixin, mixins.CreateModelMixin, generics.G
             return Response(data={"status": "api_user_update_ok"}, status=200)
 
         else:
-            return Response(data={"status": "api_user_update_failed", "error": serialized.errors.get('email')[0]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"status": "api_user_update_failed"}, status=400)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        profile = self.perform_create(serializer)
-        resp_serializer = ProfileSerializer(profile)
-        headers = self.get_success_headers(serializer.data)
-        return Response(resp_serializer.data, status=200, headers=headers)
+
+        if serializer.is_valid(raise_exception=True):
+            profile = self.perform_create(serializer)
+            resp_serializer = ProfileSerializer(profile)
+            headers = self.get_success_headers(serializer.data)
+            return Response(resp_serializer.data, status=200, headers=headers)
+        else:
+            return Response(status=400)
 
     def perform_create(self, serializer):
         return serializer.save(costumer=self.request.user)
@@ -337,17 +358,16 @@ class ShopList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
     serializer_class = ShopSerializer
     filterset_class = ShopTypeFilter
 
+    @swagger_auto_schema(operation_description="if you are logged in you can access to the information of confirmed shop through this link you can flter based on category too", operation_summary="recieving the list of confirmed shops")
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=200)
 
@@ -357,6 +377,7 @@ class TypeList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
     permission_classes = (IsAuthenticated,)
     serializer_class = TypeSerializer
 
+    @swagger_auto_schema(operation_description="if you are logged in you can recive the list of shops category through this link", operation_summary="recieving shops categories")
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
@@ -378,20 +399,23 @@ class ProductList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gener
     serializer_class = ProductSerializer
     filterset_class = ProductTypeFilter
 
+    @swagger_auto_schema(operation_description="if you are logged in you can put the shop id in url and see its product and filter them based on tag and price", operation_summary="seeing the products of a shop")
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
-        shop = Shop.objects.get(id=kwargs['shop_id'])
-        queryset = self.filter_queryset(self.get_queryset())
+        try:
+            shop = Shop.objects.get(id=kwargs['shop_id'])
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=200)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=200)
+        except:
+            return Response(status=400)
 
     def get_queryset(self):
         return self.queryset.filter(shop_id=self.kwargs.get('shop_id'))
@@ -403,16 +427,23 @@ class AddShopBasket(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gen
     serializer_class = ShopBasketSerializer
     QuerySet = ListOfComodity.objects.all()
 
+    @swagger_auto_schema(operation_description="if you are logged in you can put the id of a product in url and a cart in the shop related to that product will be created for you", operation_summary="registering a cart")
     def post(self, request, *args, **kwargs):
-        if not ShopBasket.objects.filter(costumer=self.request.user, status='processing'):
+        try:
             self.shop = ListOfComodity.objects.get(
                 id=kwargs['product_id']).shop
-            return self.create(request, *args, **kwargs)
-        else:
-            shop_basket = ShopBasket.objects.get(
-                costumer=self.request.user, status='processing')
-            resp_serializer = ShopBasketSerializer(shop_basket)
-            return Response({'message': 'you already had open shop basket', 'date': resp_serializer.data}, status=200)
+
+            if not ShopBasket.objects.filter(costumer=self.request.user, status='processing', shop=self.shop):
+                # self.shop = ListOfComodity.objects.get(
+                #     id=kwargs['product_id']).shop
+                return self.create(request, *args, **kwargs)
+            else:
+                shop_basket = ShopBasket.objects.get(
+                    costumer=self.request.user, status='processing', shop=self.shop)
+                resp_serializer = ShopBasketSerializer(shop_basket)
+                return Response({'message': 'you already had open shop basket', 'date': resp_serializer.data}, status=200)
+        except:
+            return Response(status=400)
 
     def create(self, request, *args, **kwargs):
         self.shop = ListOfComodity.objects.get(id=kwargs['product_id']).shop
@@ -432,24 +463,26 @@ class AddOrder(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericA
     serializer_class = OrderSerializer
     QuerySet = Order.objects.all()
 
+    @swagger_auto_schema(operation_description="if you are logged in you can register your order here if you dont have an open cart you should first make one", operation_summary="adding order")
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-
-        self.shop_basket = ShopBasket.objects.filter(
-            costumer=self.request.user, status='processing')[0]
-        self.product = ListOfComodity.objects.get(id=int(kwargs['product_id']))
-        self.number = int(kwargs['number'])
-        print(int(self.number))
-        print(self.product.remaining_stock)
-        if int(self.number) <= self.product.remaining_stock:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            order = self.perform_create(serializer)
-            resp_serializer = OrderSerializer(order)
-            return Response(resp_serializer.data, status=200)
-        else:
+        try:
+            self.shop_basket = ShopBasket.objects.filter(
+                costumer=self.request.user, status='processing')[0]
+            self.product = ListOfComodity.objects.get(
+                id=int(kwargs['product_id']))
+            self.number = int(kwargs['number'])
+            if int(self.number) <= self.product.remaining_stock:
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                order = self.perform_create(serializer)
+                resp_serializer = OrderSerializer(order)
+                return Response(resp_serializer.data, status=200)
+            else:
+                return Response(status=400)
+        except:
             return Response(status=400)
 
     def perform_create(self, serializer):
@@ -467,6 +500,7 @@ class DeleteOrder(APIView):
         except Order.DoesNotExist:
             raise Http404
 
+    @swagger_auto_schema(operation_description="if you are logged in you can put the id of the order you want to delete in url and sent the request", operation_summary="deleting order")
     def delete(self, request, id, format=None):
         order = self.get_object(id)
         self.product = order.comodity
@@ -483,12 +517,15 @@ class DeleteOrder(APIView):
 
 
 class PayShopBasket(APIView):
+
     def get_object(self, id):
         try:
             return ShopBasket.objects.get(id=id)
         except ShopBasket.DoesNotExist:
             raise Http404
 
+    @swagger_auto_schema(request_body=ShopBasketSerializer, operation_description="you should put the cart id in the url and send the put request so cart be payed", operation_summary="paying the cart")
+    # @extend_schema(description='text')
     def put(self, request, id, format=None):
         shop_basket = self.get_object(id)
         serializer = ShopBasketSerializer(shop_basket, data=request.data)
@@ -502,6 +539,7 @@ class ShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, gen
     permission_classes = (IsAuthenticated,)
     serializer_class = ShopBasketSerializer
 
+    @swagger_auto_schema(operation_description="if you are logged in you can send the get request and recieve your former carts information", operation_summary="list of former carts")
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
@@ -519,3 +557,91 @@ class ShopBasketCostumerList(mixins.ListModelMixin, mixins.CreateModelMixin, gen
     def get_queryset(self):
         return ShopBasket.objects.filter(
             costumer=self.request.user, status='payed')
+
+
+redis = redis.Redis(host='localhost', port='6379',
+                    charset="utf-8", decode_responses=True)
+
+
+class UserRegisterWithPhone(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = MUser.objects.all()
+    serializer_class = UserSerializer
+
+    @swagger_auto_schema(operation_description="this part is for convinent and should be ommited in the operation", operation_summary="reciving users informations")
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @swagger_auto_schema(operation_description="if you just send your phone number tou will recive a code and if you send your phone number and that password you recived you will be registered", operation_summary="registering with phone number")
+    def post(self, request, *args, **kwargs):
+        if 'password' in request.data.keys():
+            if redis.get(request.data['phonenumber']) == request.data['password']:
+                self.create(request, *args, **kwargs)
+            else:
+                return Response(status=400)
+        else:
+            ran = randint(10000, 99999)
+            try:
+                print(request.data['phonenumber'], ran)
+                redis.set(request.data['phonenumber'], ran)
+                redis.expire(request.data['phonenumber'], 1000)
+                return Response(status=200)
+            except:
+                return Response(status=400)
+
+    def create(self, request, *args, **kwargs):
+        user = MUser.objects.create_user(
+            username=request.data['phonenumber'], phonenumber=request.data['phonenumber'])
+        user.set_unusable_password()
+        user.save()
+        # serializer = self.get_serializer(user)
+        # serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def perform_create(self, user):
+        return Response(status=200)
+
+
+class OtpRequest(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+
+    # permission_classes = (IsAuthenticated,)
+    serializer_class = MUser
+    QuerySet = Order.objects.all()
+
+    @swagger_auto_schema(operation_description="if you send your phone number you will recieve a password that you can login with it", operation_summary="request for otp")
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+
+        self.user = MUser.objects.get(phonenumber=kwargs['phonenumber'])
+        if self.user:
+            ran = randint(10000, 99999)
+            try:
+                print(kwargs['phonenumber'], ran)
+                redis.set(self.user.id, ran)
+                redis.expire(self.user.id, 10000)
+                return Response(status=200)
+            except:
+                return Response(status=400)
+        else:
+            return Response(status=400)
+
+
+class OtpLogin(object):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        my_user_model = get_user_model()
+        try:
+            user = my_user_model.objects.get(phonenumber=username)
+            if redis.get(user.id) == password:
+                return user  # return user on valid credentials
+        except my_user_model.DoesNotExist:
+            return None  # return None if custom user model does not exist
+        except:
+            return None  # return None in case of other exceptions
+
+    def get_user(self, user_id):
+        my_user_model = get_user_model()
+        try:
+            return my_user_model.objects.get(pk=user_id)
+        except my_user_model.DoesNotExist:
+            return None

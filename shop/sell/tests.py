@@ -1,5 +1,6 @@
 from django.http import request
 from django.test import TestCase
+import redis
 from rest_framework import status
 
 # Create your tests here.
@@ -10,41 +11,28 @@ from auser.models import *
 from post.models import *
 from .models import *
 from model_mommy import mommy
-
+from sell.views import redis
 # User = get_user_model()
 
 
 class TestPost(APITestCase, TestCase):
 
     def setUp(self):
-        # user = User(username='dev', password='123')
-        # user.save()
-        # post1 = Post(title='post title1', creator=user, published=True)
-        # post1.save()
-        # post2 = Post(title='post title2', creator=user)
-        # post2.save()
-        # post3 = Post(title='post title3', creator=user, published=True)
-        # post3.save()
 
         self.user_shop = mommy.make(MUser, user_type='shop')
-        self.user_costumer = mommy.make(MUser, user_type='costumer')
-        self.shop = mommy.make(Shop, owner=self.user_shop)
+        self.category = mommy.make(Category)
+        self.user_costumer = mommy.make(
+            MUser, user_type='costumer', phonenumber="+989110000000")
+        self.shop = mommy.make(Shop, owner=self.user_shop,
+                               status='confirmed', category=self.category)
         self.shop_basket = mommy.make(
             ShopBasket, costumer=self.user_costumer, shop=self.shop)
         self.product = mommy.make(
-            ListOfComodity, shop=self.shop, remaining_stock=1000)
+            ListOfComodity, shop=self.shop, remaining_stock=1000, __quantity=10)
         self.order = mommy.make(
             Order, comodity=self.product, costumer=self.user_costumer, shop_basket=self.shop_basket, number=1)
 
     def test_one_order(self):
-        # url = reverse('post_list')
-
-        # resp = self.client.get(url)
-
-        # self.assertEqual(resp.status_code, 200)
-        print(self.product.price)
-        print(self.shop_basket.total_price)
-
         self.assertEqual(self.product.price, self.shop_basket.total_price)
 
     def test_register(self):
@@ -55,8 +43,15 @@ class TestPost(APITestCase, TestCase):
         resp = self.client.post(url, data=data)
         user = MUser.objects.all()
         self.assertEqual(resp.status_code, 200)
-
         self.assertEqual(len(user), 3)
+        data = {'username': 'user2',
+                'password': 'pass2',
+                'email': 'email@gmail.com'
+                }
+        resp = self.client.post(url, data=data)
+        user = MUser.objects.last()
+        print(user)
+        self.assertEqual(user.email, 'email@gmail.com')
 
     def test_profile(self):
         url = reverse('sell:profile_register')
@@ -78,18 +73,28 @@ class TestPost(APITestCase, TestCase):
         self.client.force_authenticate(self.user_costumer)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
+        a = len(Shop.objects.filter(status='confirmed'))
+        b = len(resp.data)
+        self.assertEqual(a, b)
 
     def test_shop_type(self):
         url = reverse('sell:type_list')
         self.client.force_authenticate(self.user_costumer)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
+        a = len(Category.objects.all())
+        b = len(resp.data)
+        self.assertEqual(a, b)
 
     def test_shop_product(self):
         url = reverse('sell:product_list', kwargs={'shop_id': self.shop.id})
         self.client.force_authenticate(self.user_costumer)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
+        a = len(ListOfComodity.objects.filter(
+            shop=self.shop, status='existing'))
+        b = len(resp.data)
+        self.assertEqual(a, b)
 
     def test_add_shop_basket(self):
         url = reverse('sell:add_shop_basket', kwargs={
@@ -105,20 +110,26 @@ class TestPost(APITestCase, TestCase):
 
     def test_add_order(self):
         url = reverse('sell:add_order', kwargs={
-                      'product_id': self.product.id, 'number': 1})
+                      'product_id': self.product.id, 'number': 3})
         self.client.force_authenticate(self.user_costumer)
         resp = self.client.post(url)
         self.assertEqual(resp.status_code, 200)
         url = reverse('sell:add_order', kwargs={
-                      'product_id': self.product.id, 'number': 4000})
+                      'product_id': self.product.id, 'number': 40000})
         resp = self.client.post(url)
         self.assertNotEqual(resp.status_code, 200)
+        a = ShopBasket.objects.get(costumer=self.user_costumer).total_price
+        b = self.product.price*4
+        self.assertEqual(a, b)
 
     def test_delete_order(self):
+        a = len(Order.objects.filter(shop_basket=self.shop_basket))
         self.client.force_authenticate(self.user_costumer)
         url = reverse('sell:delete_order', args=[self.order.id])
         resp = self.client.delete(url)
+        b = len(Order.objects.filter(shop_basket=self.shop_basket))
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(a-b, 1)
 
     def test_pay_shop_basket(self):
         self.client.force_authenticate(self.user_costumer)
@@ -130,4 +141,17 @@ class TestPost(APITestCase, TestCase):
         self.client.force_authenticate(self.user_costumer)
         url = reverse('sell:shop_basket_costumer_list')
         resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        a = len(ShopBasket.objects.filter(
+            status='payed', costumer=self.user_costumer))
+        b = len(resp.data)
+        self.assertEqual(a, b)
+
+    def test_otp(self):
+        # self.client.force_authenticate(self.user_costumer)
+        url = reverse('sell:otp_request', kwargs={
+                      'phonenumber': '+989110000000'})
+        resp = self.client.post(url)
+        a = redis.get(self.user_costumer.id)
+        self.assertNotEqual(a, None)
         self.assertEqual(resp.status_code, 200)

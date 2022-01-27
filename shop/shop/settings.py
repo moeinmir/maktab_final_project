@@ -12,8 +12,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import django
+import environ
+import os
 
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+
+environ.Env.read_env(".env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -21,7 +31,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#g59u8o-n6w@+7&=@(7(w_uufpc*ag6ej5(*(hayw&ma55^ktm'
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+# SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -88,7 +101,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': '1123581321',
+        'PASSWORD': os.environ.get('PASSWORD'),
         'HOST': 'localhost',
         'PORT': 5432,
     }
@@ -159,14 +172,6 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-
-
-    #     'DEFAULT_PERMISSION_CLASSES': [
-    # 'rest_framework.permissions.AllowAny',
-    # ],
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-
 }
 
 
@@ -192,25 +197,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-
-# SWAGGER_SETTINGS = {
-#     ...
-#     'VALIDATOR_URL': 'http://localhost:8189',
-#     ...
-# }
-
-
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.AllowAny',
-#     ]
-# }
-# # 'DEFAULT_AUTHENTICATION_CLASSES': [
-# #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-# #     ]
-# # }
-
-
 SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
     'SECURITY_DEFINITIONS': {
@@ -230,3 +216,11 @@ SWAGGER_SETTINGS = {
         'patch'
     ],
 }
+
+
+AUTHENTICATION_BACKENDS = (
+    'auser.models.MyPhoneBackend',
+    'auser.models.MyEmailBackend',
+    'sell.views.OtpLogin',
+    'django.contrib.auth.backends.ModelBackend',
+)
