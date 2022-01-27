@@ -31,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-#g59u8o-n6w@+7&=@(7(w_uufpc*ag6ej5(*(hayw&ma55^ktm'
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECRET_KEY = env('SECRET_KEY')
@@ -101,7 +101,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': '1123581321',
+        'PASSWORD': os.environ.get('PASSWORD'),
         'HOST': 'localhost',
         'PORT': 5432,
     }
@@ -220,6 +220,7 @@ SWAGGER_SETTINGS = {
 
 AUTHENTICATION_BACKENDS = (
     'auser.models.MyPhoneBackend',
+    'auser.models.MyEmailBackend',
     'sell.views.OtpLogin',
-    'django.contrib.auth.backends.ModelBackend'
+    'django.contrib.auth.backends.ModelBackend',
 )

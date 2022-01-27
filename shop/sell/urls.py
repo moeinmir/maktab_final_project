@@ -53,7 +53,7 @@ urlpatterns = [
          DeleteOrder.as_view(), name='delete_order'),
     path('api/cart/pay/<int:id>',
          PayShopBasket.as_view(), name='pay_shop_basket'),
-    path('api/cart/',
+    path('api/user/cart/',
          ShopBasketCostumerList.as_view(), name='shop_basket_costumer_list'),
 
     path('api/user/phoneregister/',
