@@ -598,7 +598,6 @@ class UserRegisterWithPhone(mixins.ListModelMixin, mixins.CreateModelMixin, gene
         return Response(status=status.HTTP_201_CREATED)
 
     def perform_create(self, user):
-        pass
         return Response(status=200)
 
 
@@ -608,7 +607,7 @@ class OtpRequest(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Generi
     serializer_class = MUser
     QuerySet = Order.objects.all()
 
-    @swagger_auto_schema(operation_description="if you send your phone number you will recive a password that you can login with it", operation_summary="request for otp")
+    @swagger_auto_schema(operation_description="if you send your phone number you will recieve a password that you can login with it", operation_summary="request for otp")
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 

@@ -1,5 +1,6 @@
 from django.http import request
 from django.test import TestCase
+import redis
 from rest_framework import status
 
 # Create your tests here.
@@ -10,25 +11,18 @@ from auser.models import *
 from post.models import *
 from .models import *
 from model_mommy import mommy
-
+from sell.views import redis
 # User = get_user_model()
 
 
 class TestPost(APITestCase, TestCase):
 
     def setUp(self):
-        # user = User(username='dev', password='123')
-        # user.save()
-        # post1 = Post(title='post title1', creator=user, published=True)
-        # post1.save()
-        # post2 = Post(title='post title2', creator=user)
-        # post2.save()
-        # post3 = Post(title='post title3', creator=user, published=True)
-        # post3.save()
 
         self.user_shop = mommy.make(MUser, user_type='shop')
         self.category = mommy.make(Category)
-        self.user_costumer = mommy.make(MUser, user_type='costumer')
+        self.user_costumer = mommy.make(
+            MUser, user_type='costumer', phonenumber="+989110000000")
         self.shop = mommy.make(Shop, owner=self.user_shop,
                                status='confirmed', category=self.category)
         self.shop_basket = mommy.make(
@@ -152,3 +146,12 @@ class TestPost(APITestCase, TestCase):
             status='payed', costumer=self.user_costumer))
         b = len(resp.data)
         self.assertEqual(a, b)
+
+    def test_otp(self):
+        # self.client.force_authenticate(self.user_costumer)
+        url = reverse('sell:otp_request', kwargs={
+                      'phonenumber': '+989110000000'})
+        resp = self.client.post(url)
+        a = redis.get(self.user_costumer.id)
+        self.assertNotEqual(a, None)
+        self.assertEqual(resp.status_code, 200)
